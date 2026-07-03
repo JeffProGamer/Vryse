@@ -1768,16 +1768,52 @@
       return `${minutes}:${String(remaining).padStart(2, "0")}`;
     }
 
+    function sanitizeText(value, fallback = "") {
+      const raw = value == null ? "" : String(value);
+      const normalized = raw.replace(/<[^>]*>/g, " ").replace(/[\u0000-\u001f\u007f]/g, " ");
+      const blockedTerms = [
+        "s" + "h" + "i" + "t",
+        "f" + "u" + "c" + "k",
+        "b" + "i" + "t" + "c" + "h",
+        "a" + "s" + "s",
+        "d" + "a" + "m" + "n",
+        "c" + "r" + "a" + "p",
+        "h" + "e" + "l" + "l",
+        "w" + "t" + "f",
+        "n" + "i" + "g",
+        "i" + "d" + "i" + "o" + "t",
+        "s" + "t" + "u" + "p" + "i" + "d"
+      ];
+      let cleaned = normalized;
+      blockedTerms.forEach(term => {
+        const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+        cleaned = cleaned.replace(pattern, "*");
+      });
+      cleaned = cleaned.replace(/[&<>"']/g, match => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[match]));
+      return cleaned.trim() || fallback;
+    }
+
     function ensureItemMetrics(item) {
       if (!item) return item;
+      item.title = sanitizeText(item.title, "Untitled");
+      item.channel = sanitizeText(item.channel, "Creator");
+      item.category = sanitizeText(item.category, "General");
+      item.views = sanitizeText(item.views, "New");
+      item.duration = sanitizeText(item.duration, "0:00");
       item.viewsCount = Number(item.viewsCount) || parseCountValue(item.views);
       item.likesCount = Number(item.likesCount) || 0;
       item.commentsCount = Number(item.commentsCount) || (Array.isArray(item.comments) ? item.comments.length : 0);
-      item.comments = Array.isArray(item.comments) ? item.comments : [];
+      item.comments = Array.isArray(item.comments)
+        ? item.comments.map(comment => ({
+            ...comment,
+            author: sanitizeText(comment.author, "Viewer"),
+            text: sanitizeText(comment.text, "Clean comment")
+          }))
+        : [];
       item.tags = Array.isArray(item.tags) ? item.tags : [item.category?.toLowerCase(), item.channel?.toLowerCase()];
       item.liked = Boolean(item.liked);
       item.subscribed = Boolean(item.subscribed);
-      item.time = item.time || "Live";
+      item.time = sanitizeText(item.time, "Live");
       return item;
     }
 
@@ -1791,7 +1827,7 @@
     }
 
     function createComment(text, author = currentUser?.displayName || currentUser?.username || "Viewer") {
-      return { author, text, time: "now" };
+      return { author: sanitizeText(author, "Viewer"), text: sanitizeText(text, "Clean comment"), time: "now" };
     }
 
     function makeVideo(title, channel, category, views, duration, thumb, extra = {}) {
@@ -1834,8 +1870,8 @@
 
     const defaultShorts = youtubeSeedItems.slice(0, 5).map(item => makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", videoId: item.videoId }));
 
-    let videos = JSON.parse(localStorage.getItem("vryse_videos")) || defaultVideos;
-    let shorts = JSON.parse(localStorage.getItem("vryse_shorts")) || defaultShorts;
+    let videos = (JSON.parse(localStorage.getItem("vryse_videos")) || defaultVideos).map(item => ensureItemMetrics(item));
+    let shorts = (JSON.parse(localStorage.getItem("vryse_shorts")) || defaultShorts).map(item => ensureItemMetrics(item));
     let playlists = JSON.parse(localStorage.getItem("vryse_playlists")) || [
       { id: "uploads", name: "Uploads", items: [] },
       { id: "watchLater", name: "Watch later", items: [] },
