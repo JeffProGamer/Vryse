@@ -45,6 +45,105 @@
       cursor: pointer;
     }
 
+    body.intro-open {
+      overflow: hidden;
+    }
+
+    .intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(91, 168, 255, 0.16), transparent 28%),
+        linear-gradient(135deg, #030507 0%, #0b0d10 40%, #131722 100%);
+      transition: opacity 800ms ease, visibility 800ms ease;
+    }
+
+    .intro-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-card {
+      width: min(860px, 100%);
+      padding: 36px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(9, 12, 16, 0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: introPop 900ms cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .intro-card::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(circle, rgba(49, 197, 216, 0.16), transparent 45%);
+      animation: introGlow 3.6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .intro-mark {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--red), var(--cyan));
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 16px 24px rgba(255, 61, 79, 0.22);
+      animation: introPulse 1.2s ease-in-out infinite alternate;
+    }
+
+    .intro-title {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.18em;
+      margin: 0;
+      font-size: clamp(2rem, 4.2vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    .intro-title span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: introRise 720ms cubic-bezier(.22,1,.36,1) forwards;
+    }
+
+    .intro-title span:nth-child(2) { animation-delay: 110ms; }
+    .intro-title span:nth-child(3) { animation-delay: 220ms; }
+    .intro-title span:nth-child(4) { animation-delay: 330ms; }
+    .intro-title span:nth-child(5) { animation-delay: 440ms; }
+    .intro-title span:nth-child(6) { animation-delay: 550ms; }
+    .intro-title span:nth-child(7) { animation-delay: 660ms; }
+
+    .intro-copy {
+      position: relative;
+      z-index: 1;
+      margin: 16px auto 0;
+      max-width: 680px;
+      color: var(--soft);
+      line-height: 1.7;
+      font-size: 1.02rem;
+    }
+
     .topbar {
       position: fixed;
       inset: 0 0 auto 0;
@@ -112,7 +211,7 @@
       gap: 10px;
     }
 
-    .avatar {
+    .avatar, .avatar-btn {
       width: 36px;
       height: 36px;
       border-radius: 50%;
@@ -120,6 +219,16 @@
       display: grid;
       place-items: center;
       font-weight: 800;
+      border: 0;
+      color: white;
+      overflow: hidden;
+    }
+
+    .avatar-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .shell {
@@ -127,6 +236,14 @@
       grid-template-columns: 240px 1fr;
       min-height: 100vh;
       padding-top: 64px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    .shell.ready {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .sidebar {
@@ -223,18 +340,18 @@
       gap: 22px;
     }
 
-    .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box, .hero, .hero-panel {
+    .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box, .hero, .hero-panel, .profile-hero, .playlist-card, .modal-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       overflow: hidden;
     }
 
-    .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box, .short-card, .hero, .hero-panel {
+    .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box, .short-card, .hero, .hero-panel, .profile-hero, .playlist-card, .modal-card {
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
 
-    .video-card:hover, .channel-card:hover, .short-card:hover, .queue-item:hover, .upload-box:hover, .hero:hover, .hero-panel:hover {
+    .video-card:hover, .channel-card:hover, .short-card:hover, .queue-item:hover, .upload-box:hover, .hero:hover, .hero-panel:hover, .profile-hero:hover, .playlist-card:hover {
       transform: translateY(-2px);
       border-color: rgba(91, 168, 255, 0.55);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
@@ -301,6 +418,93 @@
       gap: 12px;
       flex-wrap: wrap;
       font-size: 14px;
+    }
+
+    .profile-hero {
+      margin-bottom: 18px;
+    }
+
+    .profile-banner {
+      height: 190px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .profile-banner::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.88));
+    }
+
+    .profile-overlay {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .profile-main {
+      display: flex;
+      gap: 14px;
+      align-items: flex-end;
+    }
+
+    .avatar-large {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.85);
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--cyan), var(--red));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 32px;
+      font-weight: 900;
+    }
+
+    .avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .playlist-card {
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 4, 7, 0.8);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 60;
+    }
+
+    .modal.hidden {
+      display: none !important;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-card h3 {
+      margin: 0;
     }
 
     .thumb {
@@ -708,10 +912,47 @@
       .grid { grid-template-columns: 1fr; }
       .shorts-row { grid-template-columns: repeat(2, 1fr); }
       .section-head { align-items: flex-start; flex-direction: column; }
+      .intro-card { padding: 24px; }
+      .intro-title { font-size: clamp(1.5rem, 8vw, 2.3rem); }
+    }
+
+    @keyframes introPop {
+      from { transform: translateY(16px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    @keyframes introRise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes introPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.04); }
+    }
+
+    @keyframes introGlow {
+      from { transform: translate(-8%, -6%) rotate(0deg); }
+      to { transform: translate(8%, 6%) rotate(12deg); }
     }
   </style>
 </head>
 <body>
+  <div class="intro-screen" id="introScreen">
+    <div class="intro-card">
+      <div class="intro-mark"><i class="fa-solid fa-play"></i></div>
+      <h1 class="intro-title">
+        <span>The</span>
+        <span>Most</span>
+        <span>Best</span>
+        <span>Clone</span>
+        <span>Of</span>
+        <span>YouTube</span>
+        <span>Ever</span>
+      </h1>
+      <p class="intro-copy">A polished creator experience with animated discovery, smoother uploads, Shorts, channel storytelling, and smarter studio flow from the very first second.</p>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="brand">
       <span class="mark"><i class="fa-solid fa-play"></i></span>
@@ -724,7 +965,7 @@
     <div class="top-actions">
       <button class="icon-btn" title="Create" aria-label="Create" onclick="showView('runner')"><i class="fa-solid fa-circle-plus"></i></button>
       <button class="icon-btn" title="Notifications" aria-label="Notifications"><i class="fa-regular fa-bell"></i></button>
-      <div class="avatar" title="Signed in as Vryse Creator">V</div>
+      <button id="accountButton" class="avatar-btn" title="Manage account" aria-label="Manage account" onclick="openAuthModal()"><span id="accountAvatar">V</span></button>
     </div>
   </header>
 
@@ -925,15 +1166,17 @@
       <section id="channelView" class="hidden">
         <div class="section-head">
           <div>
-            <h1>Vryse Creator</h1>
+            <h1>Your channel</h1>
           </div>
-          <button class="btn"><i class="fa-solid fa-pen"></i> Customize</button>
+          <button class="btn" onclick="openAuthModal()"><i class="fa-solid fa-pen"></i> Edit profile</button>
         </div>
-        <div class="channel-strip" id="ownChannelStats"></div>
+        <div id="profileHero"></div>
         <h2>Videos</h2>
         <div class="grid" id="ownVideos"></div>
         <h2>Shorts</h2>
         <div class="shorts-row" id="ownShorts"></div>
+        <h2>Playlists</h2>
+        <div class="grid" id="playlistsGrid"></div>
       </section>
 
       <section id="analyticsView" class="hidden">
@@ -987,59 +1230,103 @@
     </div>
   </div>
 
+  <div class="modal hidden" id="authModal">
+    <div class="modal-card">
+      <div class="section-head">
+        <div>
+          <h3>Sign in to Vryse</h3>
+          <p class="meta">Use your email, username, display name, profile picture, and banner to build a richer creator experience.</p>
+        </div>
+        <button class="btn" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <label class="field"><span>Email</span><input id="authEmail" type="email" placeholder="you@example.com"></label>
+      <label class="field"><span>Username</span><input id="authUsername" placeholder="yourhandle"></label>
+      <label class="field"><span>Display name</span><input id="authDisplayName" placeholder="Your Name"></label>
+      <label class="field"><span>Profile picture URL</span><input id="authAvatar" placeholder="https://example.com/avatar.jpg"></label>
+      <label class="field"><span>Banner URL</span><input id="authBanner" placeholder="https://example.com/banner.jpg"></label>
+      <div class="toolbar">
+        <button class="btn primary" onclick="signIn()"><i class="fa-solid fa-right-to-bracket"></i> Sign in</button>
+        <button class="btn" onclick="closeAuthModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const categories = ["Gaming", "How To", "Video Essay", "Fitness", "Cooking", "Music", "Tech", "Travel", "DIY", "Study", "Reviews", "Comedy"];
-    const channels = [
-      { name: "Pixel Forge", category: "Gaming", trust: 98, subs: "8.4M", avatar: "P" },
-      { name: "Craft Logic", category: "DIY", trust: 94, subs: "2.1M", avatar: "C" },
-      { name: "Signal Lab", category: "Tech", trust: 97, subs: "5.7M", avatar: "S" },
-      { name: "Quiet Study", category: "Study", trust: 99, subs: "1.2M", avatar: "Q" },
-      { name: "Road Notes", category: "Travel", trust: 93, subs: "920K", avatar: "R" },
-      { name: "Plate Theory", category: "Cooking", trust: 96, subs: "3.8M", avatar: "T" },
-      { name: "Essay Works", category: "Video Essay", trust: 95, subs: "2.9M", avatar: "E" },
-      { name: "Peak Form", category: "Fitness", trust: 92, subs: "1.7M", avatar: "F" },
-      { name: "Honest Bench", category: "Reviews", trust: 97, subs: "4.3M", avatar: "H" },
-      { name: "Laugh Circuit", category: "Comedy", trust: 91, subs: "6.6M", avatar: "L" },
-      { name: "Type Beat Atlas", category: "Music", trust: 94, subs: "740K", avatar: "A" },
-      { name: "Build Sprint", category: "How To", trust: 96, subs: "2.4M", avatar: "B" }
-    ];
-
-    const videos = [
-      video("Speedrunning a City Build in 24 Hours", "Pixel Forge", "Gaming", "3.8M", "28:14", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80"),
-      video("The Beginner's Guide to Clean Home Networking", "Signal Lab", "Tech", "1.1M", "17:42", "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80"),
-      video("Why Cozy Games Took Over", "Essay Works", "Video Essay", "842K", "39:08", "https://images.unsplash.com/photo-1605901309584-818e25960a8f?auto=format&fit=crop&w=900&q=80"),
-      video("One Pan Dinner That Actually Works", "Plate Theory", "Cooking", "2.4M", "11:36", "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80"),
-      video("Desk Setup Tour for Small Rooms", "Craft Logic", "DIY", "670K", "14:19", "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=900&q=80"),
-      video("A Realistic Week in Tokyo", "Road Notes", "Travel", "930K", "26:52", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80"),
-      video("Workout Plan for Busy Creators", "Peak Form", "Fitness", "514K", "18:03", "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80"),
-      video("Budget Microphones Tested Side by Side", "Honest Bench", "Reviews", "1.6M", "21:09", "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=80"),
-      video("Making a Chill Type Beat From Scratch", "Type Beat Atlas", "Music", "388K", "12:47", "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=900&q=80"),
-      video("How to Build Better Upload Habits", "Build Sprint", "How To", "754K", "9:58", "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"),
-      video("Study With Me: Rain Window Session", "Quiet Study", "Study", "2.2M", "2:00:00", "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80"),
-      video("Reading Weird Product Reviews", "Laugh Circuit", "Comedy", "4.9M", "16:22", "https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=900&q=80")
-    ];
-
-    const shorts = [
-      short("Pixel Forge", "Gaming", "Door skip in 19 seconds", "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80"),
-      short("Pixel Forge", "Gaming", "The cleanest clutch", "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=500&q=80"),
-      short("Signal Lab", "Tech", "Tiny router trick", "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=500&q=80"),
-      short("Plate Theory", "Cooking", "Crispy edge test", "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80"),
-      short("Build Sprint", "How To", "3 upload checks", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80"),
-      short("Quiet Study", "Study", "25 minute focus block", "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=500&q=80"),
-      short("Road Notes", "Travel", "Hidden alley coffee", "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=500&q=80"),
-      short("Honest Bench", "Reviews", "Fake vs real cable", "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80")
-    ];
 
     let activeCategory = localStorage.getItem("vryse_category") || "Gaming";
     let searchTerm = "";
     let runnerItems = [];
+    let currentUser = JSON.parse(localStorage.getItem("vryse_user")) || null;
+    const introScreen = document.getElementById("introScreen");
+    const shell = document.querySelector(".shell");
 
-    function video(title, channel, category, views, duration, thumb) {
-      return { title, channel, category, views, duration, thumb, time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)] };
+    const defaultChannels = [
+      { name: "Pixel Forge", category: "Gaming", trust: 98, subs: "8.4M", avatar: "P", description: "Fast-paced speedruns and city-build challenges." },
+      { name: "Craft Logic", category: "DIY", trust: 94, subs: "2.1M", avatar: "C", description: "Hands-on tutorials and room upgrades." },
+      { name: "Signal Lab", category: "Tech", trust: 97, subs: "5.7M", avatar: "S", description: "Smart gadgets and clean setup guides." },
+      { name: "Quiet Study", category: "Study", trust: 99, subs: "1.2M", avatar: "Q", description: "Deep-focus sessions and study playlists." },
+      { name: "Road Notes", category: "Travel", trust: 93, subs: "920K", avatar: "R", description: "Journey logs from real cities and cafés." },
+      { name: "Plate Theory", category: "Cooking", trust: 96, subs: "3.8M", avatar: "T", description: "Practical recipes with strong visual payoff." },
+      { name: "Essay Works", category: "Video Essay", trust: 95, subs: "2.9M", avatar: "E", description: "Sharp commentary and narrative breakdowns." },
+      { name: "Peak Form", category: "Fitness", trust: 92, subs: "1.7M", avatar: "F", description: "Workout plans, mobility, and discipline." },
+      { name: "Honest Bench", category: "Reviews", trust: 97, subs: "4.3M", avatar: "H", description: "Detailed product tests and side-by-side reviews." },
+      { name: "Laugh Circuit", category: "Comedy", trust: 91, subs: "6.6M", avatar: "L", description: "Quick sketches and absurd commentary." }
+    ];
+
+    let subscriptions = JSON.parse(localStorage.getItem("vryse_subscriptions")) || defaultChannels;
+
+    function makeVideo(title, channel, category, views, duration, thumb, extra = {}) {
+      return { title, channel, category, views, duration, thumb, time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)], ...extra };
     }
 
-    function short(channel, category, title, thumb) {
-      return { channel, category, title, thumb, views: Math.floor(Math.random() * 900 + 100) + "K" };
+    function makeShort(channel, category, title, thumb, extra = {}) {
+      return { channel, category, title, thumb, views: Math.floor(Math.random() * 900 + 100) + "K", ...extra };
+    }
+
+    const defaultVideos = [
+      makeVideo("Speedrunning a City Build in 24 Hours", "Pixel Forge", "Gaming", "3.8M", "28:14", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ" }),
+      makeVideo("The Beginner's Guide to Clean Home Networking", "Signal Lab", "Tech", "1.1M", "17:42", "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/aqz-KE-bpKQ" }),
+      makeVideo("Why Cozy Games Took Over", "Essay Works", "Video Essay", "842K", "39:08", "https://images.unsplash.com/photo-1605901309584-818e25960a8f?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4" }),
+      makeVideo("One Pan Dinner That Actually Works", "Plate Theory", "Cooking", "2.4M", "11:36", "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/9bZkp7q19f0" })
+    ];
+
+    const defaultShorts = [
+      makeShort("Pixel Forge", "Gaming", "Door skip in 19 seconds", "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80"),
+      makeShort("Signal Lab", "Tech", "Tiny router trick", "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=500&q=80"),
+      makeShort("Build Sprint", "How To", "3 upload checks", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80")
+    ];
+
+    let videos = JSON.parse(localStorage.getItem("vryse_videos")) || defaultVideos;
+    let shorts = JSON.parse(localStorage.getItem("vryse_shorts")) || defaultShorts;
+    let playlists = JSON.parse(localStorage.getItem("vryse_playlists")) || [
+      { id: "uploads", name: "Uploads", items: [] },
+      { id: "watchLater", name: "Watch later", items: [] },
+      { id: "liked", name: "Liked videos", items: [] }
+    ];
+
+    function persistLibrary() {
+      localStorage.setItem("vryse_videos", JSON.stringify(videos));
+      localStorage.setItem("vryse_shorts", JSON.stringify(shorts));
+      localStorage.setItem("vryse_playlists", JSON.stringify(playlists));
+      localStorage.setItem("vryse_subscriptions", JSON.stringify(subscriptions));
+    }
+
+    function ensureUserProfile() {
+      if (!currentUser) return;
+      currentUser.avatarUrl = currentUser.avatarUrl || getFallbackAvatar(currentUser.username || currentUser.displayName || "V");
+      currentUser.bannerUrl = currentUser.bannerUrl || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1500&q=80";
+      currentUser.playlists = currentUser.playlists || playlists;
+      currentUser.subscriptions = currentUser.subscriptions || subscriptions;
+      playlists = currentUser.playlists;
+      subscriptions = currentUser.subscriptions;
+      localStorage.setItem("vryse_user", JSON.stringify(currentUser));
+      persistLibrary();
+    }
+
+    function getFallbackAvatar(name) {
+      const seed = encodeURIComponent(name || "Vryse");
+      return `https://api.dicebear.com/8.x/thumbs/svg?seed=${seed}`;
     }
 
     function showView(view) {
@@ -1080,51 +1367,78 @@
       });
     }
 
+    function updateHeroHighlights() {
+      const headline = document.querySelector(".hero h2");
+      const blurb = document.querySelector(".hero p");
+      const suggestion = document.querySelector(".hero-panel .hero-row:nth-child(3) strong");
+      if (!headline || !blurb || !suggestion) return;
+      const categoryLabel = activeCategory.toLowerCase();
+      headline.textContent = activeCategory === "Gaming"
+        ? "Build a calmer, smarter video workflow from upload to audience growth."
+        : `Shape ${categoryLabel} content into a sharper, more addictive creator experience.`;
+      blurb.textContent = activeCategory === "Gaming"
+        ? "Vryse brings your uploads, Shorts, studio insights, and moderation tools into one polished workspace so you can focus on making better content."
+        : `Vryse helps your ${categoryLabel} channel feel faster, clearer, and more discoverable with polished uploads, Shorts, and smarter growth tools.`;
+      suggestion.textContent = activeCategory === "Gaming"
+        ? "Turn a strong clip into a Short"
+        : `Test a ${categoryLabel} teaser on Shorts`;
+    }
+
+    function animateHeroMetrics() {
+      const first = document.querySelector(".hero-panel .hero-row:nth-child(1) strong");
+      const second = document.querySelector(".hero-panel .hero-row:nth-child(2) strong");
+      if (!first || !second) return;
+      first.textContent = "+0%";
+      second.textContent = "0";
+      let value = 0;
+      const timer = setInterval(() => {
+        value += 2;
+        first.textContent = `+${Math.min(value, 24)}%`;
+        second.textContent = `${Math.min(value, 12)}`;
+        if (value >= 24) clearInterval(timer);
+      }, 70);
+    }
+
     function renderHome() {
-      document.getElementById("homeTitle").textContent = activeCategory === "Gaming" ? "Vryse" : `Vryse: ${activeCategory}`;
-      document.getElementById("channelStrip").innerHTML = "";
+      const title = currentUser ? `${currentUser.displayName || currentUser.username || "Creator"}'s feed` : "Vryse";
+      document.getElementById("homeTitle").textContent = title;
       const rows = filteredVideos();
-      document.getElementById("videoGrid").innerHTML = rows.map(renderVideoCard).join("") || emptyState("No videos match this search.");
+      document.getElementById("videoGrid").innerHTML = rows.map(renderVideoCard).join("") || emptyState("No videos match this search yet.");
+      renderChannelStrip("channelStrip", subscriptions.slice(0, 6));
+      updateAccountUi();
+      updateHeroHighlights();
     }
 
     function renderVideoCard(item) {
-      const avatar = item.channel[0];
+      const avatar = (item.channel || "V").slice(0, 1).toUpperCase();
       return `<article class="video-card" onclick='openPlayer(${JSON.stringify(item).replaceAll("'", "&#39;")})'>
         <div class="thumb"><img src="${item.thumb || "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80"}" alt="${item.title}"><span class="duration">${item.duration}</span></div>
         <div class="video-info">
           <div class="mini-avatar">${avatar}</div>
           <div>
             <p class="title">${item.title}</p>
-            <div class="meta">${item.channel}<br>${item.views} views | ${item.time}</div>
+            <div class="meta">${item.channel}<br>${item.views || "New"} views | ${item.time || "Just now"}</div>
           </div>
         </div>
       </article>`;
     }
 
     function renderChannelStrip(targetId, list) {
-      document.getElementById(targetId).innerHTML = list.map(channel => `<article class="channel-card">
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      target.innerHTML = list.map(channel => `<article class="channel-card">
         <div class="mini-avatar">${channel.avatar}</div>
         <div>
           <p class="title">${channel.name}</p>
-          <div class="meta">${channel.subs} subscribers | Trust ${channel.trust}</div>
+          <div class="meta">${channel.subs} subscribers • ${channel.description || channel.category}</div>
           <span class="badge"><i class="fa-solid fa-layer-group"></i>${channel.category}</span>
         </div>
       </article>`).join("");
     }
 
-    function randomCategoryChannels() {
-      const categoryChannels = channels.filter(channel => channel.category === activeCategory);
-      const otherSubscriptions = channels.filter(channel => channel.category !== activeCategory).slice(0, 3);
-      return [...categoryChannels, ...otherSubscriptions].slice(0, 8);
-    }
-
-    function randomizeChannels() {
-      renderChannelStrip("channelStrip", randomCategoryChannels());
-      renderChannels();
-    }
-
     function renderChannels() {
-      renderChannelStrip("discoverChannels", randomCategoryChannels().concat(channels.filter(c => c.category === activeCategory)));
+      const list = [...subscriptions, ...defaultChannels.filter(c => !subscriptions.some(s => s.name === c.name))].slice(0, 8);
+      renderChannelStrip("discoverChannels", list);
     }
 
     function renderShorts() {
@@ -1149,7 +1463,7 @@
 
     function renderModeration() {
       const flags = [
-        ["Comment raid detected", "Laugh Circuit", 88, "Temporary hold applied"],
+        ["Comment raid detected", currentUser ? currentUser.displayName || currentUser.username : "Laugh Circuit", 88, "Temporary hold applied"],
         ["Copyright similarity", "Type Beat Atlas", 67, "Needs reviewer decision"],
         ["Medical claim check", "Peak Form", 74, "Source review requested"],
         ["Spoiler complaints", "Essay Works", 31, "Low risk"]
@@ -1164,9 +1478,41 @@
     }
 
     function renderOwnChannel() {
-      renderChannelStrip("ownChannelStats", [{ name: "Vryse Creator", category: activeCategory, trust: 96, subs: "124K", avatar: "V" }]);
-      document.getElementById("ownVideos").innerHTML = videos.slice(0, 4).map(renderVideoCard).join("");
-      document.getElementById("ownShorts").innerHTML = shorts.slice(0, 4).map(renderShortCard).join("");
+      const profile = document.getElementById("profileHero");
+      const avatarUrl = currentUser?.avatarUrl || getFallbackAvatar(currentUser?.displayName || currentUser?.username || "Vryse");
+      const bannerUrl = currentUser?.bannerUrl || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1500&q=80";
+      const channelName = currentUser ? currentUser.displayName || currentUser.username : "Vryse Creator";
+      const handle = currentUser ? `@${currentUser.username || currentUser.displayName}` : "@vrysecreator";
+      const uploads = videos.filter(item => item.channel === channelName || item.channel === currentUser?.displayName || item.channel === currentUser?.username).slice(0, 6);
+      const userShorts = shorts.filter(item => item.channel === channelName || item.channel === currentUser?.displayName || item.channel === currentUser?.username).slice(0, 4);
+      const playlistsMarkup = playlists.map(list => `
+        <article class="playlist-card">
+          <div class="queue-top"><b>${list.name}</b><span class="badge">${list.items?.length || 0} items</span></div>
+          <div class="meta">A curated section for ${channelName}'s latest uploads and Shorts.</div>
+        </article>
+      `).join("");
+
+      profile.innerHTML = `
+        <div class="profile-hero">
+          <div class="profile-banner" style="background-image:url('${bannerUrl}')"></div>
+          <div class="profile-overlay">
+            <div class="profile-main">
+              <div class="avatar-large"><img src="${avatarUrl}" alt="${channelName}"></div>
+              <div>
+                <h2 style="margin:0">${channelName}</h2>
+                <div class="meta">${handle} • 124K subscribers • ${uploads.length} videos • ${playlists.length} playlists</div>
+              </div>
+            </div>
+            <div class="toolbar">
+              <button class="btn primary"><i class="fa-solid fa-upload"></i> Upload</button>
+              <button class="btn" onclick="openAuthModal()"><i class="fa-solid fa-pen"></i> Customize</button>
+            </div>
+          </div>
+        </div>`;
+
+      document.getElementById("ownVideos").innerHTML = uploads.map(renderVideoCard).join("") || emptyState("No uploads yet. Import from YouTube to get started.");
+      document.getElementById("ownShorts").innerHTML = userShorts.map(renderShortCard).join("") || emptyState("No Shorts yet.");
+      document.getElementById("playlistsGrid").innerHTML = playlistsMarkup || emptyState("No playlists yet.");
     }
 
     function renderAnalytics() {
@@ -1191,16 +1537,31 @@
       return moves[index % moves.length];
     }
 
+    function addToPlaylist(item) {
+      const target = playlists.find(list => list.id === "uploads") || playlists[0];
+      target.items = target.items || [];
+      target.items.unshift({ title: item.title, category: item.category, channel: item.channel });
+      if (currentUser) currentUser.playlists = playlists;
+      persistLibrary();
+      ensureUserProfile();
+    }
+
     function publishDraft() {
       const title = document.getElementById("draftTitle").value.trim();
       const category = document.getElementById("draftCategory").value;
       const type = document.getElementById("draftType").value;
       if (!title) return;
+      const channelName = currentUser ? currentUser.displayName || currentUser.username : "Vryse Creator";
       if (type === "short") {
-        shorts.unshift(short("Vryse Creator", category, title, "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80"));
+        const shortItem = makeShort(channelName, category, title, "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80");
+        shorts.unshift(shortItem);
+        addToPlaylist(shortItem);
       } else {
-        videos.unshift(video(title, "Vryse Creator", category, "Just now", "12:00", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80"));
+        const videoItem = makeVideo(title, channelName, category, "Just now", "12:00", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4" });
+        videos.unshift(videoItem);
+        addToPlaylist(videoItem);
       }
+      persistLibrary();
       setCategory(category);
       showView(type === "short" ? "shorts" : "home");
     }
@@ -1229,8 +1590,8 @@
       Array.from(fileList).filter(file => file.type.startsWith("video/")).forEach(file => {
         const item = {
           title: file.name.replace(/\.[^/.]+$/, ""),
-          channel: "Local file",
-          category: "Upload",
+          channel: currentUser ? currentUser.displayName || currentUser.username : "Local file",
+          category: activeCategory,
           views: "Private",
           duration: "File",
           source: "file",
@@ -1250,12 +1611,18 @@
         input.placeholder = "Paste a valid YouTube video or Shorts link";
         return;
       }
-      const item = makeYoutubeItem(videoId);
+      const channelName = currentUser ? currentUser.displayName || currentUser.username : "YouTube import";
+      const item = makeYoutubeItem(videoId, channelName);
       videos.unshift(item);
       runnerItems.unshift(item);
+      const shortItem = makeShort(channelName, item.category, `${item.title} clip`, item.thumb);
+      shorts.unshift(shortItem);
+      addToPlaylist(item);
       input.value = "";
+      persistLibrary();
       renderHome();
       renderRunnerList();
+      renderOwnChannel();
       runItem(item);
     }
 
@@ -1271,17 +1638,8 @@
       return match ? match[1] : "";
     }
 
-    function makeYoutubeItem(videoId) {
-      return {
-        title: `YouTube video ${videoId}`,
-        channel: "YouTube import",
-        category: activeCategory,
-        views: "From YouTube",
-        duration: "Embed",
-        source: "youtube",
-        embedUrl: `https://www.youtube.com/embed/${videoId}`,
-        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      };
+    function makeYoutubeItem(videoId, channelName = "YouTube import") {
+      return makeVideo(`YouTube video ${videoId}`, channelName, activeCategory, "From YouTube", "Embed", `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`, { source: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}` });
     }
 
     function copyVryseYoutubeLink() {
@@ -1303,11 +1661,12 @@
       const raw = params.get("yt") || params.get("youtube") || params.get("watch");
       const videoId = getYoutubeId(raw || "");
       if (!videoId) return;
-      const item = makeYoutubeItem(videoId);
+      const item = makeYoutubeItem(videoId, currentUser ? currentUser.displayName || currentUser.username : "YouTube import");
       videos.unshift(item);
       runnerItems.unshift(item);
       document.getElementById("youtubeUrlInput").value = `https://www.youtube.com/watch?v=${videoId}`;
       showView("runner");
+      persistLibrary();
       renderHome();
       renderRunnerList();
       runItem(item);
@@ -1354,6 +1713,49 @@
       renderModeration();
     }
 
+    function openAuthModal() {
+      document.getElementById("authModal").classList.remove("hidden");
+      if (currentUser) {
+        document.getElementById("authEmail").value = currentUser.email || "";
+        document.getElementById("authUsername").value = currentUser.username || "";
+        document.getElementById("authDisplayName").value = currentUser.displayName || "";
+        document.getElementById("authAvatar").value = currentUser.avatarUrl || "";
+        document.getElementById("authBanner").value = currentUser.bannerUrl || "";
+      }
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+    }
+
+    function signIn() {
+      const email = document.getElementById("authEmail").value.trim();
+      const username = document.getElementById("authUsername").value.trim();
+      const displayName = document.getElementById("authDisplayName").value.trim();
+      const avatarUrl = document.getElementById("authAvatar").value.trim();
+      const bannerUrl = document.getElementById("authBanner").value.trim();
+      if (!email || !username || !displayName) return;
+      currentUser = { email, username, displayName, avatarUrl, bannerUrl, playlists, subscriptions };
+      ensureUserProfile();
+      localStorage.setItem("vryse_user", JSON.stringify(currentUser));
+      closeAuthModal();
+      renderAll();
+    }
+
+    function updateAccountUi() {
+      const button = document.getElementById("accountButton");
+      const avatar = document.getElementById("accountAvatar");
+      if (!button || !avatar) return;
+      if (currentUser) {
+        const initial = (currentUser.displayName || currentUser.username || "V").slice(0, 1).toUpperCase();
+        avatar.innerHTML = currentUser.avatarUrl ? `<img src="${currentUser.avatarUrl}" alt="${currentUser.displayName || currentUser.username}">` : initial;
+        button.title = `Signed in as ${currentUser.displayName || currentUser.username}`;
+      } else {
+        avatar.textContent = "V";
+        button.title = "Manage account";
+      }
+    }
+
     document.getElementById("searchForm").addEventListener("submit", event => {
       event.preventDefault();
       searchTerm = document.getElementById("searchInput").value.trim();
@@ -1374,6 +1776,10 @@
       if (event.target.id === "player") closePlayer();
     });
 
+    document.getElementById("authModal").addEventListener("click", event => {
+      if (event.target.id === "authModal") closeAuthModal();
+    });
+
     const dropZone = document.getElementById("dropZone");
     dropZone.addEventListener("dragover", event => {
       event.preventDefault();
@@ -1386,7 +1792,28 @@
       handleVideoFiles(event.dataTransfer.files);
     });
 
+    function revealIntro() {
+      const seenIntro = sessionStorage.getItem("vryse_intro_seen");
+      if (introScreen && shell) {
+        if (seenIntro) {
+          introScreen.classList.add("hidden");
+          shell.classList.add("ready");
+          animateHeroMetrics();
+          return;
+        }
+        window.setTimeout(() => {
+          introScreen.classList.add("hidden");
+          shell.classList.add("ready");
+          sessionStorage.setItem("vryse_intro_seen", "1");
+          animateHeroMetrics();
+        }, 2600);
+      }
+    }
+
+    ensureUserProfile();
     renderAll();
+    updateAccountUi();
+    revealIntro();
     openSharedYoutubeLink();
   </script>
 </body>
