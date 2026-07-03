@@ -14,7 +14,6 @@
             background: #0a0a0a;
             color: #fff;
         }
-        
         .topbar {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -62,13 +61,12 @@
             height: 158px;
             object-fit: cover;
         }
-        .duration {
-            position: absolute;
-            bottom: 8px; right: 8px;
-            background: rgba(0,0,0,0.85);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 12px;
+        .shorts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            padding: 24px;
+            margin-left: 240px;
         }
         .modal {
             position: fixed;
@@ -78,13 +76,6 @@
             align-items: center;
             justify-content: center;
             z-index: 200;
-        }
-        .clip-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 16px;
-            padding: 24px;
-            margin-left: 240px;
         }
     </style>
 </head>
@@ -103,17 +94,18 @@
         </div>
 
         <div style="flex:1; max-width:600px; margin:0 40px;">
-            <input id="search" type="text" placeholder="Search NovaTube" 
-                   style="width:100%; background:#18181b; border:1px solid #3f3f46; border-radius:9999px; padding:10px 20px 10px 50px; color:white;">
+            <input id="search" type="text" placeholder="Search" style="width:100%; background:#18181b; border:1px solid #3f3f46; border-radius:9999px; padding:10px 20px 10px 50px; color:white;">
         </div>
 
-        <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
             <button onclick="showUpload()" style="display:flex; align-items:center; gap:8px; padding:8px 16px; background:#18181b; border:1px solid #3f3f46; border-radius:9999px; cursor:pointer;">
-                <i class="fa-solid fa-video"></i>
-                <span>Upload</span>
+                <i class="fa-solid fa-video"></i><span>Upload</span>
             </button>
-            <button style="font-size:1.4rem; background:none; border:none; color:white;"><i class="fa-solid fa-bell"></i></button>
-            <div onclick="myChannel()" style="width:32px; height:32px; background:#8b5cf6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer;">U</div>
+            
+            <div id="user-section" style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="showLoginModal()">
+                <span id="username-display" style="font-size:14px;">Sign in</span>
+                <div id="avatar" style="width:32px;height:32px;background:#8b5cf6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">U</div>
+            </div>
         </div>
     </div>
 </div>
@@ -121,43 +113,176 @@
 <!-- Sidebar -->
 <div id="sidebar" class="sidebar">
     <div onclick="showHome()" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
-    <div onclick="showClips()" class="nav-item"><i class="fa-solid fa-bolt"></i><span>Clips</span></div>
+    <div onclick="showShorts()" class="nav-item"><i class="fa-solid fa-bolt text-yellow-400"></i><span>Shorts</span></div>
     <div class="nav-item"><i class="fa-solid fa-fire"></i><span>Trending</span></div>
     <div class="nav-item"><i class="fa-solid fa-users"></i><span>Subscriptions</span></div>
+    <hr style="margin:16px 24px; border-color:#27272a;">
+    <div onclick="showMyChannel()" class="nav-item"><i class="fa-solid fa-user"></i><span>Your Channel</span></div>
 </div>
 
 <!-- Home -->
 <div id="home" class="video-grid"></div>
 
-<!-- Clips -->
-<div id="clips-page" class="clip-grid hidden"></div>
+<!-- Shorts -->
+<div id="shorts-page" class="shorts-grid hidden"></div>
 
-<!-- Upload Modal -->
-<div id="upload-modal" class="modal">
-    <div style="background:#18181b; width:90%; max-width:420px; border-radius:16px; padding:24px;">
-        <h2 style="margin-bottom:20px; font-size:24px;">Upload to NovaTube</h2>
-        <input id="title" type="text" placeholder="Video title" style="width:100%; padding:14px; background:#27272a; border:none; border-radius:8px; margin-bottom:12px; color:white;">
-        <textarea id="desc" placeholder="Description" style="width:100%; height:100px; padding:14px; background:#27272a; border:none; border-radius:8px; color:white;"></textarea>
+<!-- Login Modal -->
+<div id="login-modal" class="modal">
+    <div style="background:#18181b; width:90%; max-width:400px; border-radius:16px; padding:32px;">
+        <h2 style="text-align:center; margin-bottom:24px;">Sign in to NovaTube</h2>
         
-        <button onclick="uploadNow()" style="width:100%; margin-top:20px; padding:16px; background:#ef4444; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-            Upload Video
-        </button>
-        <button onclick="hideUpload()" style="width:100%; margin-top:8px; padding:16px; background:transparent; border:1px solid #52525b; color:white; border-radius:8px; cursor:pointer;">
-            Cancel
-        </button>
+        <input id="login-username" type="text" placeholder="Username" style="width:100%; padding:14px; margin-bottom:12px; background:#27272a; border:none; border-radius:8px; color:white;">
+        <input id="login-password" type="password" placeholder="Password" style="width:100%; padding:14px; margin-bottom:20px; background:#27272a; border:none; border-radius:8px; color:white;">
+        
+        <button onclick="loginUser()" style="width:100%; padding:14px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:600; margin-bottom:12px;">Sign In</button>
+        <button onclick="switchToSignup()" style="width:100%; padding:14px; background:transparent; border:1px solid #52525b; border-radius:8px; color:white;">Create Account</button>
+        
+        <div onclick="hideLoginModal()" style="text-align:center; margin-top:20px; color:#a1a1aa; cursor:pointer;">Cancel</div>
+    </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signup-modal" class="modal">
+    <div style="background:#18181b; width:90%; max-width:400px; border-radius:16px; padding:32px;">
+        <h2 style="text-align:center; margin-bottom:24px;">Create NovaTube Account</h2>
+        
+        <input id="signup-username" type="text" placeholder="Choose username" style="width:100%; padding:14px; margin-bottom:12px; background:#27272a; border:none; border-radius:8px; color:white;">
+        <input id="signup-password" type="password" placeholder="Password" style="width:100%; padding:14px; margin-bottom:20px; background:#27272a; border:none; border-radius:8px; color:white;">
+        
+        <button onclick="signupUser()" style="width:100%; padding:14px; background:#22c55e; border:none; border-radius:8px; color:white; font-weight:600; margin-bottom:12px;">Create Account</button>
+        <button onclick="switchToLogin()" style="width:100%; padding:14px; background:transparent; border:1px solid #52525b; border-radius:8px; color:white;">Already have account? Sign in</button>
+        
+        <div onclick="hideLoginModal()" style="text-align:center; margin-top:20px; color:#a1a1aa; cursor:pointer;">Cancel</div>
     </div>
 </div>
 
 <script>
-// REAL PERSISTENT SAVING WITH localStorage
+// Persistent data
+let currentUser = JSON.parse(localStorage.getItem('novatube_current_user')) || null;
+let users = JSON.parse(localStorage.getItem('novatube_users')) || {};
 let videos = JSON.parse(localStorage.getItem('novatube_videos')) || [
     {id:1, title:"I Spent 100 Days in Roblox Doors", channel:"KreekCraft", views:"3.2M", time:"2h ago", duration:"22:45", thumb:"https://picsum.photos/id/1015/320/180", type:"video"},
-    {id:2, title:"Brookhaven RP Gone Wrong", channel:"ItsFunneh", views:"2.1M", time:"11h ago", duration:"15:30", thumb:"https://picsum.photos/id/133/320/180", type:"video"},
-    {id:3, title:"Crazy Roblox Glitch", channel:"Roblox", views:"984K", time:"4h ago", duration:"0:45", thumb:"https://picsum.photos/id/201/180/320", type:"clip"}
+    {id:3, title:"When you hit Door 100...", channel:"Roblox", views:"1.4M", time:"5h ago", duration:"0:42", thumb:"https://picsum.photos/id/201/180/320", type:"short"}
 ];
 
-function saveToStorage() {
+function saveAll() {
+    localStorage.setItem('novatube_current_user', JSON.stringify(currentUser));
     localStorage.setItem('novatube_videos', JSON.stringify(videos));
+}
+
+function updateUI() {
+    const display = document.getElementById('username-display');
+    const avatar = document.getElementById('avatar');
+    
+    if (currentUser) {
+        display.textContent = currentUser.username;
+        avatar.textContent = currentUser.username[0].toUpperCase();
+        avatar.style.background = "#22c55e";
+    } else {
+        display.textContent = "Sign in";
+        avatar.textContent = "U";
+        avatar.style.background = "#8b5cf6";
+    }
+}
+
+function showLoginModal() {
+    if (currentUser) {
+        alert("You are logged in as " + currentUser.username);
+        return;
+    }
+    document.getElementById('login-modal').style.display = 'flex';
+}
+
+function hideLoginModal() {
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('signup-modal').style.display = 'none';
+}
+
+function loginUser() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    
+    if (users[username] && users[username].password === password) {
+        currentUser = {username: username};
+        saveAll();
+        updateUI();
+        hideLoginModal();
+        alert("✅ Welcome back, " + username + "!");
+    } else {
+        alert("❌ Wrong username or password");
+    }
+}
+
+function signupUser() {
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value;
+    
+    if (!username || !password) {
+        alert("Please fill all fields");
+        return;
+    }
+    
+    if (users[username]) {
+        alert("Username already taken");
+        return;
+    }
+    
+    users[username] = {password: password};
+    localStorage.setItem('novatube_users', JSON.stringify(users));
+    
+    currentUser = {username: username};
+    saveAll();
+    updateUI();
+    hideLoginModal();
+    alert("✅ Account created! Welcome to NovaTube, " + username);
+}
+
+function switchToSignup() {
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('signup-modal').style.display = 'flex';
+}
+
+function switchToLogin() {
+    document.getElementById('signup-modal').style.display = 'none';
+    document.getElementById('login-modal').style.display = 'flex';
+}
+
+function showUpload() {
+    if (!currentUser) {
+        alert("You must sign in to upload videos!");
+        showLoginModal();
+        return;
+    }
+    const title = prompt("Enter video title:");
+    if (!title) return;
+    
+    const isShort = confirm("Is this a Short? (Vertical video)");
+    
+    videos.unshift({
+        id: Date.now(),
+        title: title,
+        channel: currentUser.username,
+        views: "Just now",
+        time: "Just now",
+        duration: isShort ? "0:45" : "12:00",
+        thumb: "https://picsum.photos/id/237/320/180",
+        type: isShort ? "short" : "video"
+    });
+    saveAll();
+    alert("✅ Uploaded successfully as " + currentUser.username + "!");
+    showHome();
+}
+
+function showHome() {
+    document.getElementById('home').classList.remove('hidden');
+    document.getElementById('shorts-page').classList.add('hidden');
+    renderHome();
+}
+
+function showShorts() {
+    document.getElementById('home').classList.add('hidden');
+    document.getElementById('shorts-page').classList.remove('hidden');
+    renderShorts();
 }
 
 function renderHome() {
@@ -167,69 +292,44 @@ function renderHome() {
         const div = document.createElement('div');
         div.style.cursor = "pointer";
         div.innerHTML = `
-            <div class="thumbnail">
-                <img src="${v.thumb}" alt="">
-                <div class="duration">${v.duration}</div>
-            </div>
+            <div class="thumbnail"><img src="${v.thumb}"><div class="duration">${v.duration}</div></div>
             <div style="display:flex; gap:12px; margin-top:12px;">
-                <div style="width:36px; height:36px; background:#ef4444; border-radius:50%;"></div>
-                <div style="flex:1;">
-                    <div style="font-weight:500; line-height:1.3;">${v.title}</div>
-                    <div style="color:#a1a1aa; font-size:14px; margin-top:6px;">${v.channel}</div>
-                    <div style="color:#a1a1aa; font-size:14px;">${v.views} views • ${v.time}</div>
+                <div style="width:36px;height:36px;background:#ef4444;border-radius:50%;"></div>
+                <div>
+                    <div style="font-weight:500;">${v.title}</div>
+                    <div style="color:#a1a1aa;font-size:14px;">${v.channel}</div>
+                    <div style="color:#a1a1aa;font-size:14px;">${v.views} • ${v.time}</div>
                 </div>
             </div>
         `;
-        div.onclick = () => alert(`▶ Playing: ${v.title}`);
+        div.onclick = () => alert(`Playing: ${v.title}`);
         container.appendChild(div);
     });
 }
 
-function renderClips() {
-    const container = document.getElementById('clips-page');
+function renderShorts() {
+    const container = document.getElementById('shorts-page');
     container.innerHTML = '';
-    videos.filter(v => v.type === "clip").forEach(v => {
+    videos.filter(v => v.type === "short").forEach(v => {
         const div = document.createElement('div');
         div.style.cursor = "pointer";
         div.innerHTML = `
-            <div class="thumbnail" style="height:280px;">
-                <img src="${v.thumb}" style="height:100%; width:100%; object-fit:cover;" alt="">
-            </div>
-            <div style="margin-top:10px; font-weight:500;">${v.title}</div>
-            <div style="color:#a1a1aa; font-size:14px;">${v.channel}</div>
+            <img src="${v.thumb}" style="width:100%;height:280px;object-fit:cover;border-radius:12px;">
+            <div style="margin-top:8px;font-weight:500;">${v.title}</div>
+            <div style="color:#a1a1aa;">${v.channel}</div>
         `;
-        div.onclick = () => alert(`▶ Playing Clip: ${v.title}`);
+        div.onclick = () => alert(`Playing Short: ${v.title}`);
         container.appendChild(div);
     });
 }
 
-function showUpload() {
-    document.getElementById('upload-modal').style.display = 'flex';
-}
-
-function hideUpload() {
-    document.getElementById('upload-modal').style.display = 'none';
-}
-
-function uploadNow() {
-    const title = document.getElementById('title').value.trim() || "Untitled Video";
-    
-    const newVideo = {
-        id: Date.now(),
-        title: title,
-        channel: "Your Channel",
-        views: "Just now",
-        time: "Just now",
-        duration: "10:00",
-        thumb: "https://picsum.photos/id/237/320/180",
-        type: "video"
-    };
-    
-    videos.unshift(newVideo);
-    saveToStorage();
-    renderHome();
-    hideUpload();
-    alert("✅ Video Uploaded & SAVED permanently in your browser!");
+function showMyChannel() {
+    if (!currentUser) {
+        alert("Sign in to view your channel");
+        showLoginModal();
+        return;
+    }
+    alert(`Welcome to your channel, ${currentUser.username}!\n\nYour uploaded videos appear here.`);
 }
 
 function toggleSidebar() {
@@ -237,26 +337,10 @@ function toggleSidebar() {
     sb.style.transform = (sb.style.transform === 'translateX(0px)') ? 'translateX(-240px)' : 'translateX(0px)';
 }
 
-function showHome() {
-    document.getElementById('home').classList.remove('hidden');
-    document.getElementById('clips-page').classList.add('hidden');
-    renderHome();
-}
-
-function showClips() {
-    document.getElementById('home').classList.add('hidden');
-    document.getElementById('clips-page').classList.remove('hidden');
-    renderClips();
-}
-
-function myChannel() {
-    alert("Your NovaTube Channel\n\nAll your uploads are saved in this browser.");
-}
-
-// Initialize
+// Init
 window.onload = () => {
+    updateUI();
     renderHome();
-    console.log("%cNovaTube Loaded - Videos saved with localStorage", "color:#ef4444; font-size:16px");
 };
 </script>
 </body>
