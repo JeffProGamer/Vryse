@@ -733,7 +733,10 @@
           <div class="upload-box">
             <h2>YouTube to Vryse</h2>
             <label class="field"><span>YouTube URL</span><input id="youtubeUrlInput" placeholder="https://www.youtube.com/watch?v=..."></label>
-            <button class="btn primary" onclick="addYoutubeVideo()"><i class="fa-brands fa-youtube"></i> Run YouTube link</button>
+            <div class="toolbar">
+              <button class="btn primary" onclick="addYoutubeVideo()"><i class="fa-brands fa-youtube"></i> Run YouTube link</button>
+              <button class="btn" onclick="copyVryseYoutubeLink()"><i class="fa-solid fa-link"></i> Copy Vryse link</button>
+            </div>
             <div class="idea-list" id="runnerList"></div>
           </div>
         </div>
@@ -1160,16 +1163,7 @@
         input.placeholder = "Paste a valid YouTube video or Shorts link";
         return;
       }
-      const item = {
-        title: `YouTube video ${videoId}`,
-        channel: "YouTube import",
-        category: activeCategory,
-        views: "From YouTube",
-        duration: "Embed",
-        source: "youtube",
-        embedUrl: `https://www.youtube.com/embed/${videoId}`,
-        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      };
+      const item = makeYoutubeItem(videoId);
       videos.unshift(item);
       runnerItems.unshift(item);
       input.value = "";
@@ -1179,6 +1173,7 @@
     }
 
     function getYoutubeId(url) {
+      if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
       const patterns = [
         /youtube\.com\/watch\?v=([^&]+)/,
         /youtu\.be\/([^?&]+)/,
@@ -1187,6 +1182,48 @@
       ];
       const match = patterns.map(pattern => url.match(pattern)).find(Boolean);
       return match ? match[1] : "";
+    }
+
+    function makeYoutubeItem(videoId) {
+      return {
+        title: `YouTube video ${videoId}`,
+        channel: "YouTube import",
+        category: activeCategory,
+        views: "From YouTube",
+        duration: "Embed",
+        source: "youtube",
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+      };
+    }
+
+    function copyVryseYoutubeLink() {
+      const input = document.getElementById("youtubeUrlInput");
+      const videoId = getYoutubeId(input.value.trim());
+      if (!videoId) {
+        input.placeholder = "Paste a YouTube link first";
+        return;
+      }
+      const shareUrl = `${location.origin}${location.pathname}?yt=${encodeURIComponent(videoId)}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl);
+      }
+      input.value = shareUrl;
+    }
+
+    function openSharedYoutubeLink() {
+      const params = new URLSearchParams(location.search);
+      const raw = params.get("yt") || params.get("youtube") || params.get("watch");
+      const videoId = getYoutubeId(raw || "");
+      if (!videoId) return;
+      const item = makeYoutubeItem(videoId);
+      videos.unshift(item);
+      runnerItems.unshift(item);
+      document.getElementById("youtubeUrlInput").value = `https://www.youtube.com/watch?v=${videoId}`;
+      showView("runner");
+      renderHome();
+      renderRunnerList();
+      runItem(item);
     }
 
     function runItem(item) {
@@ -1250,6 +1287,7 @@
     });
 
     renderAll();
+    openSharedYoutubeLink();
   </script>
 </body>
 </html>
