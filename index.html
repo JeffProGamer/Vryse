@@ -608,6 +608,57 @@
       line-height: 1.5;
     }
 
+    .featured-shelf {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 14px;
+      margin: 0 0 24px;
+    }
+
+    .featured-card {
+      display: flex;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      align-items: center;
+    }
+
+    .featured-card:nth-child(2) {
+      background: linear-gradient(135deg, rgba(255, 145, 77, 0.16), rgba(255,255,255,0.03));
+    }
+
+    .featured-card:nth-child(3) {
+      background: linear-gradient(135deg, rgba(90, 214, 155, 0.16), rgba(255,255,255,0.03));
+    }
+
+    .featured-thumb {
+      flex: 0 0 116px;
+      height: 84px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--panel-2);
+    }
+
+    .featured-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .featured-copy h3 {
+      margin: 2px 0 6px;
+      font-size: 1rem;
+    }
+
+    .featured-copy .btn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+
     .mini-badge {
       display: inline-flex;
       align-items: center;
@@ -1299,6 +1350,7 @@
             <div class="meta">Your audience can now engage with clearer reactions, likes, and follow actions in one place.</div>
           </article>
         </div>
+        <div class="featured-shelf" id="featuredShelf"></div>
         <div class="chips" id="categoryChips"></div>
         <div class="section-head">
           <div>
@@ -1615,6 +1667,46 @@
         thumb: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
         videoId: "dQw4w9WgXcQ",
         embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      },
+      {
+        title: "Build a Studio Setup That Feels Premium",
+        channel: "Signal Lab",
+        category: "Tech",
+        views: "1.9M",
+        duration: "21:03",
+        thumb: "https://img.youtube.com/vi/M7lc1UVf-VE/hqdefault.jpg",
+        videoId: "M7lc1UVf-VE",
+        embedUrl: "https://www.youtube.com/embed/M7lc1UVf-VE"
+      },
+      {
+        title: "The Best Travel Kit for Fast Weekend Trips",
+        channel: "Road Notes",
+        category: "Travel",
+        views: "690K",
+        duration: "14:21",
+        thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+        videoId: "jNQXAC9IVRw",
+        embedUrl: "https://www.youtube.com/embed/jNQXAC9IVRw"
+      },
+      {
+        title: "A 10-Minute Fitness Flow That Actually Feels Good",
+        channel: "Peak Form",
+        category: "Fitness",
+        views: "2.1M",
+        duration: "10:13",
+        thumb: "https://img.youtube.com/vi/2Vv-BfVoq4g/hqdefault.jpg",
+        videoId: "2Vv-BfVoq4g",
+        embedUrl: "https://www.youtube.com/embed/2Vv-BfVoq4g"
+      },
+      {
+        title: "How a Simple Study Routine Beat a Busy One",
+        channel: "Quiet Study",
+        category: "Study",
+        views: "950K",
+        duration: "18:44",
+        thumb: "https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg",
+        videoId: "ScMzIvxBSi4",
+        embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4"
       }
     ];
     const youtubeFeedSources = [
@@ -1716,9 +1808,9 @@
       });
     }
 
-    const defaultVideos = youtubeSeedItems.slice(0, 4).map(item => makeVideo(item.title, item.channel, item.category, item.views, item.duration, item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId }));
+    const defaultVideos = youtubeSeedItems.slice(0, 6).map(item => makeVideo(item.title, item.channel, item.category, item.views, item.duration, item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId }));
 
-    const defaultShorts = youtubeSeedItems.slice(0, 3).map(item => makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", videoId: item.videoId }));
+    const defaultShorts = youtubeSeedItems.slice(0, 5).map(item => makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", videoId: item.videoId }));
 
     let videos = JSON.parse(localStorage.getItem("vryse_videos")) || defaultVideos;
     let shorts = JSON.parse(localStorage.getItem("vryse_shorts")) || defaultShorts;
@@ -1826,10 +1918,11 @@
       }
 
       if (!fetchedVideos.length) {
-        youtubeSeedItems.forEach(item => {
-          fetchedVideos.push(makeVideo(item.title, item.channel, item.category, item.views, item.duration, item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true }));
-          fetchedShorts.push(makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId }));
-        });
+        for (const item of youtubeSeedItems) {
+          const metadata = await fetchYouTubeMetadata(item.videoId);
+          fetchedVideos.push(makeVideo(metadata?.title || item.title, item.channel, item.category, item.views, item.duration, metadata?.thumb || item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true }));
+          fetchedShorts.push(makeShort(item.channel, item.category, `${metadata?.title || item.title} clip`, metadata?.thumb || item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId }));
+        }
       }
 
       if (fetchedVideos.length) {
@@ -1993,11 +2086,30 @@
       renderModeration();
     }
 
+    function renderFeaturedShelf() {
+      const target = document.getElementById("featuredShelf");
+      if (!target) return;
+      const featured = filteredVideos().slice(0, 3);
+      target.innerHTML = featured.length
+        ? featured.map((item, index) => `
+            <article class="featured-card">
+              <div class="featured-thumb"><img src="${item.thumb || "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80"}" alt="${item.title}"></div>
+              <div class="featured-copy">
+                <div class="mini-badge"><i class="fa-solid fa-star"></i> ${index === 0 ? "Featured" : index === 1 ? "Watch next" : "Popular"}</div>
+                <h3>${item.title}</h3>
+                <div class="meta">${item.channel} • ${item.views || "New"} • ${formatCount(item.viewsCount || 0)} views</div>
+                <button class="btn primary" onclick="event.stopPropagation(); openPlayer(${JSON.stringify(item).replaceAll("'", "&#39;")})">Play now</button>
+              </div>
+            </article>`).join("")
+        : "";
+    }
+
     function renderHome() {
       const title = currentUser ? `${currentUser.displayName || currentUser.username || "Creator"}'s feed` : "Vryse";
       document.getElementById("homeTitle").textContent = title;
       const rows = visibleVideos();
       document.getElementById("videoGrid").innerHTML = rows.map(renderVideoCard).join("") || emptyState("No videos match this search yet.");
+      renderFeaturedShelf();
       renderChannelStrip("channelStrip", subscriptions.slice(0, 6));
       updateAccountUi();
       updateHeroHighlights();
@@ -2237,17 +2349,35 @@
     }
 
     async function fetchYouTubeMetadata(videoId) {
-      try {
-        const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-        if (!response.ok) return null;
-        const data = await response.json();
-        return {
-          title: data.title || `YouTube video ${videoId}`,
-          thumb: data.thumbnail_url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-        };
-      } catch (error) {
-        return null;
+      if (!videoId) return null;
+      const candidates = [
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+        `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`,
+        `https://r.jina.ai/http://https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+      ];
+
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url, { mode: "cors" });
+          if (!response.ok) continue;
+          const data = await response.json();
+          const title = data.title || data.html?.match(/title="([^"]+)"/)?.[1] || `YouTube video ${videoId}`;
+          const thumb = data.thumbnail_url || data.thumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+          if (title || thumb) {
+            return {
+              title: String(title).replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"'),
+              thumb
+            };
+          }
+        } catch (error) {
+          continue;
+        }
       }
+
+      return {
+        title: `YouTube video ${videoId}`,
+        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+      };
     }
 
     async function addYoutubeVideo() {
