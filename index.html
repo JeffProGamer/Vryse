@@ -1709,10 +1709,15 @@
         embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4"
       }
     ];
-    const youtubeFeedSources = [
-      { label: "Gaming", channelId: "UCX6OQ3DkcsbYNE6H8uQQuVA", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCX6OQ3DkcsbYNE6H8uQQuVA" },
-      { label: "Tech", channelId: "UCBJycsmduvYEL83R_U4JriQ", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCBJycsmduvYEL83R_U4JriQ" },
-      { label: "Learning", channelId: "UCEBb1b_L6zDS3xTUrial140", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCEBb1b_L6zDS3xTUrial140" }
+    const youtubeCatalog = [
+      { title: "The Beginner's Guide to Clean Home Networking", channel: "Signal Lab", category: "Tech", views: "1.1M", duration: "17:42", thumb: "https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg", videoId: "aqz-KE-bpKQ", embedUrl: "https://www.youtube.com/embed/aqz-KE-bpKQ" },
+      { title: "Why Cozy Games Took Over", channel: "Essay Works", category: "Video Essay", views: "842K", duration: "39:08", thumb: "https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg", videoId: "ScMzIvxBSi4", embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4" },
+      { title: "One Pan Dinner That Actually Works", channel: "Plate Theory", category: "Cooking", views: "2.4M", duration: "11:36", thumb: "https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg", videoId: "9bZkp7q19f0", embedUrl: "https://www.youtube.com/embed/9bZkp7q19f0" },
+      { title: "Speedrunning a City Build in 24 Hours", channel: "Pixel Forge", category: "Gaming", views: "3.8M", duration: "28:14", thumb: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg", videoId: "dQw4w9WgXcQ", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+      { title: "Build a Studio Setup That Feels Premium", channel: "Signal Lab", category: "Tech", views: "1.9M", duration: "21:03", thumb: "https://img.youtube.com/vi/M7lc1UVf-VE/hqdefault.jpg", videoId: "M7lc1UVf-VE", embedUrl: "https://www.youtube.com/embed/M7lc1UVf-VE" },
+      { title: "The Best Travel Kit for Fast Weekend Trips", channel: "Road Notes", category: "Travel", views: "690K", duration: "14:21", thumb: "https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg", videoId: "jNQXAC9IVRw", embedUrl: "https://www.youtube.com/embed/jNQXAC9IVRw" },
+      { title: "A 10-Minute Fitness Flow That Actually Feels Good", channel: "Peak Form", category: "Fitness", views: "2.1M", duration: "10:13", thumb: "https://img.youtube.com/vi/2Vv-BfVoq4g/hqdefault.jpg", videoId: "2Vv-BfVoq4g", embedUrl: "https://www.youtube.com/embed/2Vv-BfVoq4g" },
+      { title: "How a Simple Study Routine Beat a Busy One", channel: "Quiet Study", category: "Study", views: "950K", duration: "18:44", thumb: "https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg", videoId: "ScMzIvxBSi4", embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4" }
     ];
 
     const defaultChannels = [
@@ -1911,60 +1916,29 @@
       const fetchedVideos = [];
       const fetchedShorts = [];
 
-      for (const source of youtubeFeedSources) {
+      for (const item of youtubeCatalog) {
         try {
-          const feedCandidates = [
-            source.url,
-            `https://r.jina.ai/http://https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
-          ];
-
-          for (const candidate of feedCandidates) {
-            const response = await fetch(candidate, { mode: "cors" });
-            if (!response.ok) continue;
-
-            const text = await response.text();
-            const entries = [...text.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(match => match[1]);
-
-            for (const entry of entries.slice(0, 4)) {
-              const videoId = (entry.match(/<yt:videoId>([^<]+)/) || [])[1] || "";
-              const title = (entry.match(/<title>([^<]+)/) || [])[1] || "YouTube upload";
-              const thumb = (entry.match(/<media:thumbnail[^>]+url="([^"]+)"/) || [])[1] || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-              const channelName = (entry.match(/<name>([^<]+)/) || [])[1] || source.label;
-              const cleanTitle = title.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
-              const metadata = videoId ? await fetchYouTubeMetadata(videoId) : null;
-              const videoItem = makeVideo(
-                metadata?.title || cleanTitle,
-                metadata?.channel || channelName,
-                source.label,
-                metadata?.views || "Live from YouTube",
-                metadata?.duration || "New",
-                metadata?.thumb || thumb,
-                {
-                  source: "youtube",
-                  embedUrl: `https://www.youtube.com/embed/${videoId}`,
-                  videoId,
-                  fromFeed: true,
-                  viewsCount: metadata?.viewsCount,
-                  likesCount: metadata?.likesCount
-                }
-              );
-              fetchedVideos.push(videoItem);
-
-              const shortItem = makeShort(metadata?.channel || channelName, source.label, metadata?.title || cleanTitle, metadata?.thumb || thumb, { source: "youtube", fromFeed: true, isShort: /short|shorts/i.test(cleanTitle), videoId, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount });
-              fetchedShorts.push(shortItem);
-            }
-            break;
-          }
-        } catch (error) {
-          console.warn("YouTube feed fetch failed", error);
-        }
-      }
-
-      if (!fetchedVideos.length) {
-        for (const item of youtubeSeedItems) {
           const metadata = await fetchYouTubeMetadata(item.videoId);
-          fetchedVideos.push(makeVideo(metadata?.title || item.title, metadata?.channel || item.channel, item.category, metadata?.views || item.views, metadata?.duration || item.duration, metadata?.thumb || item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount }));
+          const videoItem = makeVideo(
+            metadata?.title || item.title,
+            metadata?.channel || item.channel,
+            item.category,
+            metadata?.views || item.views,
+            metadata?.duration || item.duration,
+            metadata?.thumb || item.thumb,
+            {
+              source: "youtube",
+              embedUrl: item.embedUrl,
+              videoId: item.videoId,
+              fromFeed: true,
+              viewsCount: metadata?.viewsCount,
+              likesCount: metadata?.likesCount
+            }
+          );
+          fetchedVideos.push(videoItem);
           fetchedShorts.push(makeShort(metadata?.channel || item.channel, item.category, `${metadata?.title || item.title} clip`, metadata?.thumb || item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount }));
+        } catch (error) {
+          console.warn("YouTube metadata load failed", error);
         }
       }
 
