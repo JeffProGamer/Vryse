@@ -1728,6 +1728,16 @@
       { name: "Laugh Circuit", category: "Comedy", trust: 91, subs: "6.6M", avatar: "L", description: "Quick sketches and absurd commentary." }
     ];
 
+    const libraryVersion = "vryse-lib-v2";
+    const shouldResetLibrary = localStorage.getItem("vryse_library_version") !== libraryVersion;
+    if (shouldResetLibrary) {
+      localStorage.removeItem("vryse_videos");
+      localStorage.removeItem("vryse_shorts");
+      localStorage.removeItem("vryse_playlists");
+      localStorage.removeItem("vryse_subscriptions");
+      localStorage.setItem("vryse_library_version", libraryVersion);
+    }
+
     let subscriptions = JSON.parse(localStorage.getItem("vryse_subscriptions")) || defaultChannels;
 
     function parseCountValue(value) {
@@ -1746,15 +1756,23 @@
       return `${amount}`;
     }
 
+    function formatDuration(seconds) {
+      const total = Number(seconds) || 0;
+      const minutes = Math.floor(total / 60);
+      const remaining = total % 60;
+      return `${minutes}:${String(remaining).padStart(2, "0")}`;
+    }
+
     function ensureItemMetrics(item) {
       if (!item) return item;
       item.viewsCount = Number(item.viewsCount) || parseCountValue(item.views);
-      item.likesCount = Number(item.likesCount) || 1200 + Math.floor(Math.random() * 4000);
+      item.likesCount = Number(item.likesCount) || 0;
       item.commentsCount = Number(item.commentsCount) || (Array.isArray(item.comments) ? item.comments.length : 0);
-      item.comments = Array.isArray(item.comments) ? item.comments : [{ author: "Mina", text: "This one is really landing.", time: "just now" }];
+      item.comments = Array.isArray(item.comments) ? item.comments : [];
       item.tags = Array.isArray(item.tags) ? item.tags : [item.category?.toLowerCase(), item.channel?.toLowerCase()];
       item.liked = Boolean(item.liked);
       item.subscribed = Boolean(item.subscribed);
+      item.time = item.time || "Live";
       return item;
     }
 
@@ -1772,7 +1790,7 @@
     }
 
     function makeVideo(title, channel, category, views, duration, thumb, extra = {}) {
-      const baseComments = Array.isArray(extra.comments) ? extra.comments : [{ author: "Mina", text: "This is landing really well.", time: "now" }];
+      const comments = Array.isArray(extra.comments) ? extra.comments : [];
       return ensureItemMetrics({
         title,
         channel,
@@ -1780,10 +1798,10 @@
         views,
         duration,
         thumb,
-        time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)],
-        comments: baseComments,
-        likesCount: Number(extra.likesCount) || 1200 + Math.floor(Math.random() * 4000),
-        viewsCount: parseCountValue(views),
+        time: extra.time || "Live",
+        comments,
+        likesCount: Number(extra.likesCount) || 0,
+        viewsCount: Number(extra.viewsCount) || parseCountValue(views),
         liked: false,
         tags: extra.tags || [category.toLowerCase(), channel.toLowerCase()],
         ...extra
@@ -1791,17 +1809,16 @@
     }
 
     function makeShort(channel, category, title, thumb, extra = {}) {
-      const views = `${extra.views || `${Math.floor(Math.random() * 900 + 100)}K`}`;
-      const baseComments = Array.isArray(extra.comments) ? extra.comments : [{ author: "Rory", text: "Shorts like this keep me watching.", time: "now" }];
+      const views = `${extra.views || "0"}`;
       return ensureItemMetrics({
         channel,
         category,
         title,
         thumb,
         views,
-        viewsCount: parseCountValue(views),
-        likesCount: Number(extra.likesCount) || 400 + Math.floor(Math.random() * 1800),
-        comments: baseComments,
+        viewsCount: Number(extra.viewsCount) || parseCountValue(views),
+        likesCount: Number(extra.likesCount) || 0,
+        comments: Array.isArray(extra.comments) ? extra.comments : [],
         liked: false,
         tags: extra.tags || [category.toLowerCase(), channel.toLowerCase()],
         ...extra
@@ -1819,6 +1836,18 @@
       { id: "watchLater", name: "Watch later", items: [] },
       { id: "liked", name: "Liked videos", items: [] }
     ];
+
+    if (shouldResetLibrary) {
+      videos = defaultVideos;
+      shorts = defaultShorts;
+      playlists = [
+        { id: "uploads", name: "Uploads", items: [] },
+        { id: "watchLater", name: "Watch later", items: [] },
+        { id: "liked", name: "Liked videos", items: [] }
+      ];
+      subscriptions = defaultChannels;
+      persistLibrary();
+    }
 
     function persistLibrary() {
       localStorage.setItem("vryse_videos", JSON.stringify(videos));
@@ -1844,20 +1873,26 @@
       applySidebarState();
     }
 
-    function startLiveActivity() {
-      window.setInterval(() => {
-        const liveCandidates = [...videos, ...shorts].filter(item => item.source !== "file");
-        if (!liveCandidates.length) return;
-        liveCandidates.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(item => {
-          item.viewsCount = (item.viewsCount || 0) + Math.round(Math.random() * 160 + 20);
-          item.views = formatCount(item.viewsCount);
-          if (Math.random() > 0.65) item.likesCount = (item.likesCount || 0) + 1;
-        });
+    async function startLiveActivity() {
+      window.setInterval(async () => {
+        const youtubeItems = [...videos, ...shorts].filter(item => item.source === "youtube" && item.videoId);
+        if (!youtubeItems.length) return;
+        await Promise.all(youtubeItems.slice(0, 3).map(async item => {
+          const metadata = await fetchYouTubeMetadata(item.videoId);
+          if (!metadata) return;
+          item.title = metadata.title || item.title;
+          item.channel = metadata.channel || item.channel;
+          item.thumb = metadata.thumb || item.thumb;
+          item.views = metadata.views || item.views;
+          item.viewsCount = Number(metadata.viewsCount) || parseCountValue(item.views);
+          item.likesCount = Number(metadata.likesCount) || item.likesCount || 0;
+          item.duration = metadata.duration || item.duration;
+        }));
         persistLibrary();
         if (document.getElementById("videoGrid")) renderHome();
         if (document.getElementById("shortsByChannel")) renderShorts();
         if (activePlayerItem) renderPlayerState();
-      }, 4500);
+      }, 30000);
     }
 
     function ensureUserProfile() {
@@ -1890,26 +1925,34 @@
             const text = await response.text();
             const entries = [...text.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(match => match[1]);
 
-            entries.slice(0, 4).forEach(entry => {
+            for (const entry of entries.slice(0, 4)) {
               const videoId = (entry.match(/<yt:videoId>([^<]+)/) || [])[1] || "";
               const title = (entry.match(/<title>([^<]+)/) || [])[1] || "YouTube upload";
               const thumb = (entry.match(/<media:thumbnail[^>]+url="([^"]+)"/) || [])[1] || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
               const channelName = (entry.match(/<name>([^<]+)/) || [])[1] || source.label;
               const cleanTitle = title.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+              const metadata = videoId ? await fetchYouTubeMetadata(videoId) : null;
               const videoItem = makeVideo(
-                cleanTitle,
-                channelName,
+                metadata?.title || cleanTitle,
+                metadata?.channel || channelName,
                 source.label,
-                "Live from YouTube",
-                "New",
-                thumb,
-                { source: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId, fromFeed: true }
+                metadata?.views || "Live from YouTube",
+                metadata?.duration || "New",
+                metadata?.thumb || thumb,
+                {
+                  source: "youtube",
+                  embedUrl: `https://www.youtube.com/embed/${videoId}`,
+                  videoId,
+                  fromFeed: true,
+                  viewsCount: metadata?.viewsCount,
+                  likesCount: metadata?.likesCount
+                }
               );
               fetchedVideos.push(videoItem);
 
-              const shortItem = makeShort(channelName, source.label, cleanTitle, thumb, { source: "youtube", fromFeed: true, isShort: /short|shorts/i.test(cleanTitle), videoId });
+              const shortItem = makeShort(metadata?.channel || channelName, source.label, metadata?.title || cleanTitle, metadata?.thumb || thumb, { source: "youtube", fromFeed: true, isShort: /short|shorts/i.test(cleanTitle), videoId, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount });
               fetchedShorts.push(shortItem);
-            });
+            }
             break;
           }
         } catch (error) {
@@ -1920,8 +1963,8 @@
       if (!fetchedVideos.length) {
         for (const item of youtubeSeedItems) {
           const metadata = await fetchYouTubeMetadata(item.videoId);
-          fetchedVideos.push(makeVideo(metadata?.title || item.title, item.channel, item.category, item.views, item.duration, metadata?.thumb || item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true }));
-          fetchedShorts.push(makeShort(item.channel, item.category, `${metadata?.title || item.title} clip`, metadata?.thumb || item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId }));
+          fetchedVideos.push(makeVideo(metadata?.title || item.title, metadata?.channel || item.channel, item.category, metadata?.views || item.views, metadata?.duration || item.duration, metadata?.thumb || item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount }));
+          fetchedShorts.push(makeShort(metadata?.channel || item.channel, item.category, `${metadata?.title || item.title} clip`, metadata?.thumb || item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId, viewsCount: metadata?.viewsCount, likesCount: metadata?.likesCount }));
         }
       }
 
@@ -2350,13 +2393,13 @@
 
     async function fetchYouTubeMetadata(videoId) {
       if (!videoId) return null;
-      const candidates = [
+
+      const oEmbedCandidates = [
         `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
-        `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`,
-        `https://r.jina.ai/http://https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+        `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`
       ];
 
-      for (const url of candidates) {
+      for (const url of oEmbedCandidates) {
         try {
           const response = await fetch(url, { mode: "cors" });
           if (!response.ok) continue;
@@ -2374,10 +2417,40 @@
         }
       }
 
-      return {
-        title: `YouTube video ${videoId}`,
-        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-      };
+      try {
+        const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (!response.ok) throw new Error("youtube watch page unavailable");
+        const html = await response.text();
+        const playerMatch = html.match(/ytInitialPlayerResponse\s*=\s*({[\s\S]*?});/);
+        let playerData = null;
+        if (playerMatch) {
+          try {
+            playerData = JSON.parse(playerMatch[1]);
+          } catch (error) {
+            playerData = null;
+          }
+        }
+        const details = playerData?.videoDetails || {};
+        const thumbnails = details.thumbnail?.thumbnails || [];
+        const thumb = thumbnails[thumbnails.length - 1]?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        const viewCount = Number(details.viewCount || 0);
+        const likeMatch = html.match(/"simpleText":"([0-9.,]+(?:\s?[KMB])?)\s+likes?"/i) || html.match(/"accessibilityData":\{"label":"([0-9.,]+(?:\s?[KMB])?)\s+likes?"/i);
+        const likeCount = parseCountValue(likeMatch?.[1] || 0);
+        return {
+          title: String(details.title || `YouTube video ${videoId}`).replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"'),
+          channel: details.author || details.ownerProfileName || "YouTube",
+          thumb,
+          views: formatCount(viewCount),
+          viewsCount: viewCount,
+          likesCount: likeCount,
+          duration: formatDuration(Number(details.lengthSeconds || 0))
+        };
+      } catch (error) {
+        return {
+          title: `YouTube video ${videoId}`,
+          thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+        };
+      }
     }
 
     async function addYoutubeVideo() {
