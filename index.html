@@ -1,347 +1,1255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaTube</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Roboto', system-ui, sans-serif;
-            background: #0a0a0a;
-            color: #fff;
-        }
-        .topbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 56px;
-            background: #0a0a0a;
-            border-bottom: 1px solid #27272a;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            z-index: 100;
-        }
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 56px;
-            width: 240px;
-            height: calc(100vh - 56px);
-            background: #0a0a0a;
-            border-right: 1px solid #27272a;
-            overflow-y: auto;
-            z-index: 90;
-        }
-        .nav-item {
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            cursor: pointer;
-        }
-        .nav-item:hover { background: #27272a; }
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-            padding: 24px;
-            margin-left: 240px;
-        }
-        .thumbnail {
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .thumbnail img {
-            width: 100%;
-            height: 158px;
-            object-fit: cover;
-        }
-        .shorts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 16px;
-            padding: 24px;
-            margin-left: 240px;
-        }
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vryse</title>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #0b0d10;
+      --panel: #14181d;
+      --panel-2: #1b2027;
+      --line: #2a313a;
+      --text: #f6f7f8;
+      --muted: #a7b0ba;
+      --soft: #d7dde3;
+      --red: #ff3d4f;
+      --cyan: #31c5d8;
+      --green: #48d17c;
+      --yellow: #f7c948;
+      --blue: #5ba8ff;
+      --danger: #ff6b6b;
+      --radius: 8px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Roboto, Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 64px;
+      display: grid;
+      grid-template-columns: 240px minmax(220px, 720px) 1fr;
+      align-items: center;
+      gap: 20px;
+      padding: 0 18px;
+      background: rgba(11, 13, 16, 0.98);
+      border-bottom: 1px solid var(--line);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 26px;
+    }
+
+    .mark {
+      width: 38px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      background: var(--red);
+      border-radius: 7px;
+      color: white;
+      font-size: 14px;
+    }
+
+    .search {
+      display: grid;
+      grid-template-columns: 1fr 44px;
+      border: 1px solid var(--line);
+      background: #11151a;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .search input {
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      background: transparent;
+      padding: 12px 18px;
+    }
+
+    .search button, .icon-btn {
+      border: 0;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      min-width: 42px;
+      min-height: 42px;
+    }
+
+    .top-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--red));
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+      padding-top: 64px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 64px;
+      bottom: 0;
+      width: 240px;
+      padding: 14px 10px;
+      border-right: 1px solid var(--line);
+      background: #0d1014;
+      overflow: auto;
+    }
+
+    .nav-btn {
+      width: 100%;
+      height: 44px;
+      border: 0;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--soft);
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      text-align: left;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--panel-2);
+      color: white;
+    }
+
+    .nav-label {
+      margin: 18px 12px 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    main {
+      grid-column: 2;
+      padding: 18px 22px 42px;
+      min-width: 0;
+    }
+
+    .chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 14px;
+      scrollbar-width: thin;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--soft);
+      border-radius: 999px;
+      padding: 9px 14px;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      background: var(--text);
+      color: #101316;
+      border-color: var(--text);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .section-head h1, .section-head h2 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 22px;
+    }
+
+    .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: #222831;
+      overflow: hidden;
+    }
+
+    .thumb img, .short-thumb img, .wide-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .duration, .badge {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: rgba(0, 0, 0, 0.82);
+      color: white;
+      border-radius: 5px;
+      padding: 4px 7px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge {
+      position: static;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #20262e;
+      color: var(--soft);
+      border: 1px solid var(--line);
+    }
+
+    .video-info {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .mini-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #061015;
+      background: var(--cyan);
+      font-weight: 900;
+    }
+
+    .title {
+      margin: 0 0 6px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .shorts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 18px;
+    }
+
+    .short-card {
+      cursor: pointer;
+    }
+
+    .short-thumb {
+      aspect-ratio: 9 / 16;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      position: relative;
+    }
+
+    .short-card .title {
+      margin-top: 9px;
+      font-size: 15px;
+    }
+
+    .channel-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .channel-card {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .channel-card .mini-avatar {
+      width: 52px;
+      height: 52px;
+      background: var(--yellow);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0 18px;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 10px 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+    }
+
+    .btn.primary {
+      border-color: var(--red);
+      background: var(--red);
+      color: white;
+    }
+
+    .btn.success {
+      border-color: #286640;
+      background: #143821;
+      color: #9ff0b6;
+    }
+
+    .btn.warn {
+      border-color: #665521;
+      background: #3d3111;
+      color: #ffe28a;
+    }
+
+    .upload-box, .edit-panel {
+      padding: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .field span {
+      color: var(--soft);
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #0f1318;
+      color: var(--text);
+      padding: 12px;
+      outline: none;
+      resize: vertical;
+    }
+
+    .timeline {
+      height: 84px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, var(--cyan) 0 16%, #34404c 16% 19%, var(--yellow) 19% 44%, #34404c 44% 47%, var(--red) 47% 72%, #34404c 72% 75%, var(--green) 75% 100%);
+      margin-top: 14px;
+      position: relative;
+    }
+
+    .playhead {
+      position: absolute;
+      top: -8px;
+      bottom: -8px;
+      left: 38%;
+      width: 3px;
+      background: white;
+      border-radius: 4px;
+    }
+
+    .queue {
+      display: grid;
+      gap: 12px;
+    }
+
+    .assist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .assist-card {
+      border: 1px solid var(--line);
+      background: #10151a;
+      border-radius: var(--radius);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .assist-card strong {
+      font-size: 22px;
+    }
+
+    .idea-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .idea-pill {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: #0f1318;
+      color: var(--soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .queue-item {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .queue-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .risk {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: #2a313a;
+      overflow: hidden;
+    }
+
+    .risk span {
+      display: block;
+      height: 100%;
+      background: var(--danger);
+    }
+
+    .player {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(5, 7, 9, 0.96);
+      padding: 80px 24px 24px;
+    }
+
+    .player.open {
+      display: grid;
+      place-items: center;
+    }
+
+    .player-inner {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 18px;
+    }
+
+    .wide-media {
+      aspect-ratio: 16 / 9;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: black;
+      border: 1px solid var(--line);
+    }
+
+    .runner-player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #050607;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .runner-player video, .runner-player iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #050607;
+    }
+
+    .drop-zone {
+      border: 1px dashed #53606e;
+      border-radius: var(--radius);
+      background: #10151a;
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 18px;
+    }
+
+    .drop-zone.dragging {
+      border-color: var(--cyan);
+      background: #102129;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .topbar {
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 10px;
+      }
+
+      .top-actions {
+        justify-content: space-between;
+      }
+
+      .shell {
+        grid-template-columns: 1fr;
+        padding-top: 162px;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 108px;
+        left: 0;
+        right: 0;
+        width: auto;
+        height: 54px;
+        padding: 6px 8px;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .nav-label { display: none; }
+      .nav-btn {
+        min-width: 52px;
+        grid-template-columns: 1fr;
+        justify-items: center;
+        padding: 0 10px;
+      }
+      .nav-btn span { display: none; }
+      main { grid-column: 1; padding: 14px; }
+      .workspace, .player-inner { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .assist-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .shorts-row { grid-template-columns: repeat(2, 1fr); }
+      .section-head { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
-
-<div class="topbar">
-    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; max-width:1400px; margin:0 auto;">
-        <div style="display:flex; align-items:center; gap:16px;">
-            <button onclick="toggleSidebar()" style="padding:12px; background:none; border:none; color:white; font-size:1.3rem;">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <i class="fa-solid fa-play" style="font-size:28px; color:#ef4444;"></i>
-                <span style="font-weight:700; font-size:24px;">NovaTube</span>
-            </div>
-        </div>
-
-        <div style="flex:1; max-width:600px; margin:0 40px;">
-            <input id="search" type="text" placeholder="Search" style="width:100%; background:#18181b; border:1px solid #3f3f46; border-radius:9999px; padding:10px 20px 10px 50px; color:white;">
-        </div>
-
-        <div style="display:flex; align-items:center; gap:12px;">
-            <button onclick="showUpload()" style="display:flex; align-items:center; gap:8px; padding:8px 16px; background:#18181b; border:1px solid #3f3f46; border-radius:9999px; cursor:pointer;">
-                <i class="fa-solid fa-video"></i><span>Upload</span>
-            </button>
-            
-            <div id="user-section" style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="showLoginModal()">
-                <span id="username-display" style="font-size:14px;">Sign in</span>
-                <div id="avatar" style="width:32px;height:32px;background:#8b5cf6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">U</div>
-            </div>
-        </div>
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark"><i class="fa-solid fa-play"></i></span>
+      <span>Vryse</span>
     </div>
-</div>
-
-<!-- Sidebar -->
-<div id="sidebar" class="sidebar">
-    <div onclick="showHome()" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></div>
-    <div onclick="showShorts()" class="nav-item"><i class="fa-solid fa-bolt text-yellow-400"></i><span>Shorts</span></div>
-    <div class="nav-item"><i class="fa-solid fa-fire"></i><span>Trending</span></div>
-    <div class="nav-item"><i class="fa-solid fa-users"></i><span>Subscriptions</span></div>
-    <hr style="margin:16px 24px; border-color:#27272a;">
-    <div onclick="showMyChannel()" class="nav-item"><i class="fa-solid fa-user"></i><span>Your Channel</span></div>
-</div>
-
-<!-- Home -->
-<div id="home" class="video-grid"></div>
-
-<!-- Shorts -->
-<div id="shorts-page" class="shorts-grid hidden"></div>
-
-<!-- Login Modal -->
-<div id="login-modal" class="modal">
-    <div style="background:#18181b; width:90%; max-width:400px; border-radius:16px; padding:32px;">
-        <h2 style="text-align:center; margin-bottom:24px;">Sign in to NovaTube</h2>
-        
-        <input id="login-username" type="text" placeholder="Username" style="width:100%; padding:14px; margin-bottom:12px; background:#27272a; border:none; border-radius:8px; color:white;">
-        <input id="login-password" type="password" placeholder="Password" style="width:100%; padding:14px; margin-bottom:20px; background:#27272a; border:none; border-radius:8px; color:white;">
-        
-        <button onclick="loginUser()" style="width:100%; padding:14px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:600; margin-bottom:12px;">Sign In</button>
-        <button onclick="switchToSignup()" style="width:100%; padding:14px; background:transparent; border:1px solid #52525b; border-radius:8px; color:white;">Create Account</button>
-        
-        <div onclick="hideLoginModal()" style="text-align:center; margin-top:20px; color:#a1a1aa; cursor:pointer;">Cancel</div>
+    <form class="search" id="searchForm">
+      <input id="searchInput" type="search" placeholder="Search videos, channels, categories">
+      <button title="Search" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </form>
+    <div class="top-actions">
+      <button class="icon-btn" title="Create" aria-label="Create" onclick="showView('studio')"><i class="fa-solid fa-circle-plus"></i></button>
+      <button class="icon-btn" title="Notifications" aria-label="Notifications"><i class="fa-regular fa-bell"></i></button>
+      <div class="avatar" title="Signed in as Vryse Creator">V</div>
     </div>
-</div>
+  </header>
 
-<!-- Signup Modal -->
-<div id="signup-modal" class="modal">
-    <div style="background:#18181b; width:90%; max-width:400px; border-radius:16px; padding:32px;">
-        <h2 style="text-align:center; margin-bottom:24px;">Create NovaTube Account</h2>
-        
-        <input id="signup-username" type="text" placeholder="Choose username" style="width:100%; padding:14px; margin-bottom:12px; background:#27272a; border:none; border-radius:8px; color:white;">
-        <input id="signup-password" type="password" placeholder="Password" style="width:100%; padding:14px; margin-bottom:20px; background:#27272a; border:none; border-radius:8px; color:white;">
-        
-        <button onclick="signupUser()" style="width:100%; padding:14px; background:#22c55e; border:none; border-radius:8px; color:white; font-weight:600; margin-bottom:12px;">Create Account</button>
-        <button onclick="switchToLogin()" style="width:100%; padding:14px; background:transparent; border:1px solid #52525b; border-radius:8px; color:white;">Already have account? Sign in</button>
-        
-        <div onclick="hideLoginModal()" style="text-align:center; margin-top:20px; color:#a1a1aa; cursor:pointer;">Cancel</div>
-    </div>
-</div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="nav-btn active" data-view="home" onclick="showView('home')"><i class="fa-solid fa-house"></i><span>Vryse</span></button>
+      <button class="nav-btn" data-view="shorts" onclick="showView('shorts')"><i class="fa-solid fa-bolt"></i><span>Shorts</span></button>
+      <button class="nav-btn" data-view="channels" onclick="showView('channels')"><i class="fa-solid fa-shuffle"></i><span>Discover</span></button>
+      <button class="nav-btn" data-view="runner" onclick="showView('runner')"><i class="fa-solid fa-film"></i><span>Runner</span></button>
+      <button class="nav-btn" data-view="studio" onclick="showView('studio')"><i class="fa-solid fa-chart-line"></i><span>Studio</span></button>
+      <button class="nav-btn" data-view="editor" onclick="showView('editor')"><i class="fa-solid fa-scissors"></i><span>Editing</span></button>
+      <button class="nav-btn" data-view="moderation" onclick="showView('moderation')"><i class="fa-solid fa-shield-halved"></i><span>Moderation</span></button>
+      <div class="nav-label">Library</div>
+      <button class="nav-btn" data-view="channel" onclick="showView('channel')"><i class="fa-solid fa-user-astronaut"></i><span>Your Channel</span></button>
+      <button class="nav-btn" data-view="analytics" onclick="showView('analytics')"><i class="fa-solid fa-wave-square"></i><span>Analytics</span></button>
+    </aside>
 
-<script>
-// Persistent data
-let currentUser = JSON.parse(localStorage.getItem('novatube_current_user')) || null;
-let users = JSON.parse(localStorage.getItem('novatube_users')) || {};
-let videos = JSON.parse(localStorage.getItem('novatube_videos')) || [
-    {id:1, title:"I Spent 100 Days in Roblox Doors", channel:"KreekCraft", views:"3.2M", time:"2h ago", duration:"22:45", thumb:"https://picsum.photos/id/1015/320/180", type:"video"},
-    {id:3, title:"When you hit Door 100...", channel:"Roblox", views:"1.4M", time:"5h ago", duration:"0:42", thumb:"https://picsum.photos/id/201/180/320", type:"short"}
-];
+    <main>
+      <section id="homeView">
+        <div class="chips" id="categoryChips"></div>
+        <div class="section-head">
+          <div>
+            <h1 id="homeTitle">Vryse</h1>
+            <p id="homeSubtitle">Videos and channels are mixed by your selected category, so discovery feels random without getting irrelevant.</p>
+          </div>
+          <button class="btn" onclick="randomizeChannels()"><i class="fa-solid fa-shuffle"></i> Random channels</button>
+        </div>
+        <div class="channel-strip" id="channelStrip"></div>
+        <div class="grid" id="videoGrid"></div>
+      </section>
 
-function saveAll() {
-    localStorage.setItem('novatube_current_user', JSON.stringify(currentUser));
-    localStorage.setItem('novatube_videos', JSON.stringify(videos));
-}
+      <section id="shortsView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Shorts</h1>
+            <p>Inside each channel, Shorts stay grouped with the creator. Outside channels, they follow your category selection.</p>
+          </div>
+          <select class="chip" id="shortCategory" onchange="setCategory(this.value)">
+          </select>
+        </div>
+        <div id="shortsByChannel"></div>
+      </section>
 
-function updateUI() {
-    const display = document.getElementById('username-display');
-    const avatar = document.getElementById('avatar');
-    
-    if (currentUser) {
-        display.textContent = currentUser.username;
-        avatar.textContent = currentUser.username[0].toUpperCase();
-        avatar.style.background = "#22c55e";
-    } else {
-        display.textContent = "Sign in";
-        avatar.textContent = "U";
-        avatar.style.background = "#8b5cf6";
-    }
-}
+      <section id="channelsView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Channel Discovery</h1>
+            <p>Fresh channels from the active category, weighted by quality score, upload consistency, and moderation trust.</p>
+          </div>
+          <button class="btn primary" onclick="randomizeChannels()"><i class="fa-solid fa-wand-magic-sparkles"></i> Refresh</button>
+        </div>
+        <div class="channel-strip" id="discoverChannels"></div>
+      </section>
 
-function showLoginModal() {
-    if (currentUser) {
-        alert("You are logged in as " + currentUser.username);
-        return;
-    }
-    document.getElementById('login-modal').style.display = 'flex';
-}
-
-function hideLoginModal() {
-    document.getElementById('login-modal').style.display = 'none';
-    document.getElementById('signup-modal').style.display = 'none';
-}
-
-function loginUser() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-    
-    if (users[username] && users[username].password === password) {
-        currentUser = {username: username};
-        saveAll();
-        updateUI();
-        hideLoginModal();
-        alert("✅ Welcome back, " + username + "!");
-    } else {
-        alert("❌ Wrong username or password");
-    }
-}
-
-function signupUser() {
-    const username = document.getElementById('signup-username').value.trim();
-    const password = document.getElementById('signup-password').value;
-    
-    if (!username || !password) {
-        alert("Please fill all fields");
-        return;
-    }
-    
-    if (users[username]) {
-        alert("Username already taken");
-        return;
-    }
-    
-    users[username] = {password: password};
-    localStorage.setItem('novatube_users', JSON.stringify(users));
-    
-    currentUser = {username: username};
-    saveAll();
-    updateUI();
-    hideLoginModal();
-    alert("✅ Account created! Welcome to NovaTube, " + username);
-}
-
-function switchToSignup() {
-    document.getElementById('login-modal').style.display = 'none';
-    document.getElementById('signup-modal').style.display = 'flex';
-}
-
-function switchToLogin() {
-    document.getElementById('signup-modal').style.display = 'none';
-    document.getElementById('login-modal').style.display = 'flex';
-}
-
-function showUpload() {
-    if (!currentUser) {
-        alert("You must sign in to upload videos!");
-        showLoginModal();
-        return;
-    }
-    const title = prompt("Enter video title:");
-    if (!title) return;
-    
-    const isShort = confirm("Is this a Short? (Vertical video)");
-    
-    videos.unshift({
-        id: Date.now(),
-        title: title,
-        channel: currentUser.username,
-        views: "Just now",
-        time: "Just now",
-        duration: isShort ? "0:45" : "12:00",
-        thumb: "https://picsum.photos/id/237/320/180",
-        type: isShort ? "short" : "video"
-    });
-    saveAll();
-    alert("✅ Uploaded successfully as " + currentUser.username + "!");
-    showHome();
-}
-
-function showHome() {
-    document.getElementById('home').classList.remove('hidden');
-    document.getElementById('shorts-page').classList.add('hidden');
-    renderHome();
-}
-
-function showShorts() {
-    document.getElementById('home').classList.add('hidden');
-    document.getElementById('shorts-page').classList.remove('hidden');
-    renderShorts();
-}
-
-function renderHome() {
-    const container = document.getElementById('home');
-    container.innerHTML = '';
-    videos.filter(v => v.type === "video").forEach(v => {
-        const div = document.createElement('div');
-        div.style.cursor = "pointer";
-        div.innerHTML = `
-            <div class="thumbnail"><img src="${v.thumb}"><div class="duration">${v.duration}</div></div>
-            <div style="display:flex; gap:12px; margin-top:12px;">
-                <div style="width:36px;height:36px;background:#ef4444;border-radius:50%;"></div>
-                <div>
-                    <div style="font-weight:500;">${v.title}</div>
-                    <div style="color:#a1a1aa;font-size:14px;">${v.channel}</div>
-                    <div style="color:#a1a1aa;font-size:14px;">${v.views} • ${v.time}</div>
-                </div>
+      <section id="runnerView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Video Runner</h1>
+            <p>Run local video files in Vryse or paste a YouTube link to watch it inside the Vryse player.</p>
+          </div>
+          <button class="btn primary" onclick="document.getElementById('videoFileInput').click()"><i class="fa-solid fa-folder-open"></i> Add files</button>
+        </div>
+        <div class="workspace">
+          <div>
+            <div class="runner-player" id="runnerPlayer">
+              <span class="meta">Choose a video file or paste a YouTube link.</span>
             </div>
-        `;
-        div.onclick = () => alert(`Playing: ${v.title}`);
-        container.appendChild(div);
-    });
-}
+            <div class="toolbar">
+              <input class="hidden" id="videoFileInput" type="file" accept="video/*" multiple onchange="handleVideoFiles(this.files)">
+              <button class="btn" onclick="document.getElementById('videoFileInput').click()"><i class="fa-solid fa-file-video"></i> Files</button>
+              <button class="btn" onclick="clearRunner()"><i class="fa-solid fa-trash"></i> Clear</button>
+              <button class="btn" onclick="showView('studio')"><i class="fa-solid fa-arrow-up-from-bracket"></i> Send to Studio</button>
+            </div>
+            <div class="drop-zone" id="dropZone">
+              <div>
+                <b>Drop video files here</b>
+                <div class="meta">MP4, WebM, OGG, MOV if your browser supports it.</div>
+              </div>
+            </div>
+          </div>
+          <div class="upload-box">
+            <h2>YouTube to Vryse</h2>
+            <label class="field"><span>YouTube URL</span><input id="youtubeUrlInput" placeholder="https://www.youtube.com/watch?v=..."></label>
+            <button class="btn primary" onclick="addYoutubeVideo()"><i class="fa-brands fa-youtube"></i> Run YouTube link</button>
+            <div class="idea-list" id="runnerList"></div>
+          </div>
+        </div>
+      </section>
 
-function renderShorts() {
-    const container = document.getElementById('shorts-page');
-    container.innerHTML = '';
-    videos.filter(v => v.type === "short").forEach(v => {
-        const div = document.createElement('div');
-        div.style.cursor = "pointer";
-        div.innerHTML = `
-            <img src="${v.thumb}" style="width:100%;height:280px;object-fit:cover;border-radius:12px;">
-            <div style="margin-top:8px;font-weight:500;">${v.title}</div>
-            <div style="color:#a1a1aa;">${v.channel}</div>
-        `;
-        div.onclick = () => alert(`Playing Short: ${v.title}`);
-        container.appendChild(div);
-    });
-}
+      <section id="studioView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Vryse Studio</h1>
+            <p>Publish, optimize, moderate, and track growth from one creator workspace.</p>
+          </div>
+          <button class="btn primary" onclick="publishDraft()"><i class="fa-solid fa-upload"></i> Publish draft</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>4.8M</strong><span class="meta">Monthly views</span></div>
+          <div class="stat"><strong>+18%</strong><span class="meta">Watch time</span></div>
+          <div class="stat"><strong>96</strong><span class="meta">Trust score</span></div>
+          <div class="stat"><strong>12</strong><span class="meta">Drafts ready</span></div>
+        </div>
+        <div class="workspace">
+          <div class="upload-box">
+            <h2>Upload Center</h2>
+            <label class="field"><span>Title</span><input id="draftTitle" value="I Tried Building the Perfect Creator Studio"></label>
+            <label class="field"><span>Category</span><select id="draftCategory"></select></label>
+            <label class="field"><span>Type</span><select id="draftType"><option value="video">Long video</option><option value="short">Short</option></select></label>
+            <label class="field"><span>Description</span><textarea rows="5">Testing a calmer creator workflow with stronger discovery and safer comments.</textarea></label>
+          </div>
+          <div class="upload-box">
+            <h2>vidIQ Creator Coach</h2>
+            <div class="assist-grid">
+              <div class="assist-card"><span class="meta">Title strength</span><strong>88</strong><span class="meta">Clear promise, searchable phrase, strong curiosity gap.</span></div>
+              <div class="assist-card"><span class="meta">Reach chance</span><strong>High</strong><span class="meta">Good category fit and low competition window today.</span></div>
+              <div class="assist-card"><span class="meta">Thumbnail check</span><strong>Needs contrast</strong><span class="meta">Face/object should fill more of the frame.</span></div>
+              <div class="assist-card"><span class="meta">Retention risk</span><strong>Intro slow</strong><span class="meta">Cut the first 12 seconds or start with the final result.</span></div>
+            </div>
+            <div class="idea-list">
+              <div class="idea-pill"><span>Try title: Build a Better Creator Studio in 24 Hours</span><b>92</b></div>
+              <div class="idea-pill"><span>Keywords: creator studio, upload workflow, video editing, moderation tools</span><b>SEO</b></div>
+              <div class="idea-pill"><span>Best upload time: 6:30 PM audience local time</span><b>+14%</b></div>
+              <div class="idea-pill"><span>Next video gap: beginner setup tour for small channels</span><b>Idea</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-function showMyChannel() {
-    if (!currentUser) {
-        alert("Sign in to view your channel");
-        showLoginModal();
-        return;
+      <section id="editorView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Editing</h1>
+            <p>A focused page for cuts, captions, thumbnails, chapters, and Shorts extraction.</p>
+          </div>
+          <button class="btn success"><i class="fa-solid fa-floppy-disk"></i> Save edit</button>
+        </div>
+        <div class="workspace">
+          <div>
+            <div class="wide-media"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80" alt="Video editing workspace"></div>
+            <div class="timeline"><div class="playhead"></div></div>
+            <div class="toolbar">
+              <button class="btn"><i class="fa-solid fa-backward-step"></i></button>
+              <button class="btn primary"><i class="fa-solid fa-play"></i></button>
+              <button class="btn"><i class="fa-solid fa-forward-step"></i></button>
+              <button class="btn"><i class="fa-solid fa-closed-captioning"></i> Captions</button>
+              <button class="btn"><i class="fa-solid fa-crop-simple"></i> Shorts crop</button>
+              <button class="btn"><i class="fa-solid fa-image"></i> Thumbnail</button>
+            </div>
+          </div>
+          <div class="edit-panel">
+            <h2>Clip Settings</h2>
+            <label class="field"><span>Aspect</span><select><option>16:9 Long-form</option><option>9:16 Short</option><option>1:1 Social</option></select></label>
+            <label class="field"><span>Auto captions</span><select><option>Clean readable captions</option><option>Burned-in captions</option><option>Creator transcript only</option></select></label>
+            <label class="field"><span>Noise control</span><input type="range" min="0" max="100" value="62"></label>
+            <label class="field"><span>Chapter marker</span><input value="03:42 - Building the new upload flow"></label>
+          </div>
+        </div>
+      </section>
+
+      <section id="moderationView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Moderation</h1>
+            <p>Queue-first safety with creator tools, reviewer notes, appeal paths, and category-aware filters.</p>
+          </div>
+          <button class="btn warn"><i class="fa-solid fa-triangle-exclamation"></i> Escalate all high risk</button>
+        </div>
+        <div class="workspace">
+          <div class="queue" id="moderationQueue"></div>
+          <div class="upload-box">
+            <h2>Policy Controls</h2>
+            <label class="field"><span>Category sensitivity</span><select><option>Balanced</option><option>Strict for kids content</option><option>Lenient for documentaries</option></select></label>
+            <label class="field"><span>Comment filter</span><select><option>Hold likely harm</option><option>Creator approval required</option><option>Verified users only</option></select></label>
+            <label class="field"><span>Appeals</span><select><option>Allow creator appeal</option><option>Reviewer-only decision</option></select></label>
+          </div>
+        </div>
+      </section>
+
+      <section id="channelView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Vryse Creator</h1>
+            <p>Videos, Shorts, playlists, and community posts stay organized together on the channel page.</p>
+          </div>
+          <button class="btn"><i class="fa-solid fa-pen"></i> Customize</button>
+        </div>
+        <div class="channel-strip" id="ownChannelStats"></div>
+        <h2>Videos</h2>
+        <div class="grid" id="ownVideos"></div>
+        <h2>Shorts</h2>
+        <div class="shorts-row" id="ownShorts"></div>
+      </section>
+
+      <section id="analyticsView" class="hidden">
+        <div class="section-head">
+          <div>
+            <h1>Analytics</h1>
+            <p>Category demand, channel trust, retention, and vidIQ-style idea scoring in one dashboard.</p>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>72%</strong><span class="meta">Average retention</span></div>
+          <div class="stat"><strong>41K</strong><span class="meta">Returning viewers</span></div>
+          <div class="stat"><strong>8.9%</strong><span class="meta">Click-through rate</span></div>
+          <div class="stat"><strong>312</strong><span class="meta">Held comments</span></div>
+        </div>
+        <div class="workspace">
+          <div class="upload-box">
+            <h2>vidIQ Growth Plan</h2>
+            <div class="queue">
+              <div class="queue-item"><div class="queue-top"><b>Improve packaging</b><span class="badge">Highest impact</span></div><span class="meta">Rewrite titles around viewer outcome, then test two thumbnail styles before publishing.</span></div>
+              <div class="queue-item"><div class="queue-top"><b>Make better hooks</b><span class="badge">Retention</span></div><span class="meta">Open with the payoff, cut long greetings, and show the problem in the first 5 seconds.</span></div>
+              <div class="queue-item"><div class="queue-top"><b>Plan smarter topics</b><span class="badge">Content gap</span></div><span class="meta">Create more videos in categories where demand is high and competing uploads are weaker.</span></div>
+            </div>
+          </div>
+          <div class="upload-box">
+            <h2>Creator Checklist</h2>
+            <div class="idea-list">
+              <div class="idea-pill"><span>Searchable title under 60 characters</span><b>Done</b></div>
+              <div class="idea-pill"><span>Three strong tags plus category match</span><b>Fix</b></div>
+              <div class="idea-pill"><span>Thumbnail readable on mobile</span><b>Fix</b></div>
+              <div class="idea-pill"><span>Pinned comment asks a clear question</span><b>Next</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid" id="analyticsCards"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="player" id="player">
+    <div class="player-inner">
+      <div>
+        <div class="wide-media runner-player" id="playerMedia"></div>
+        <h2 id="playerTitle"></h2>
+        <p class="meta" id="playerMeta"></p>
+      </div>
+      <div class="upload-box">
+        <button class="btn" onclick="closePlayer()"><i class="fa-solid fa-xmark"></i> Close</button>
+        <h2>Up next</h2>
+        <div class="queue" id="upNext"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categories = ["Gaming", "How To", "Video Essay", "Fitness", "Cooking", "Music", "Tech", "Travel", "DIY", "Study", "Reviews", "Comedy"];
+    const channels = [
+      { name: "Pixel Forge", category: "Gaming", trust: 98, subs: "8.4M", avatar: "P" },
+      { name: "Craft Logic", category: "DIY", trust: 94, subs: "2.1M", avatar: "C" },
+      { name: "Signal Lab", category: "Tech", trust: 97, subs: "5.7M", avatar: "S" },
+      { name: "Quiet Study", category: "Study", trust: 99, subs: "1.2M", avatar: "Q" },
+      { name: "Road Notes", category: "Travel", trust: 93, subs: "920K", avatar: "R" },
+      { name: "Plate Theory", category: "Cooking", trust: 96, subs: "3.8M", avatar: "T" },
+      { name: "Essay Works", category: "Video Essay", trust: 95, subs: "2.9M", avatar: "E" },
+      { name: "Peak Form", category: "Fitness", trust: 92, subs: "1.7M", avatar: "F" },
+      { name: "Honest Bench", category: "Reviews", trust: 97, subs: "4.3M", avatar: "H" },
+      { name: "Laugh Circuit", category: "Comedy", trust: 91, subs: "6.6M", avatar: "L" },
+      { name: "Type Beat Atlas", category: "Music", trust: 94, subs: "740K", avatar: "A" },
+      { name: "Build Sprint", category: "How To", trust: 96, subs: "2.4M", avatar: "B" }
+    ];
+
+    const videos = [
+      video("Speedrunning a City Build in 24 Hours", "Pixel Forge", "Gaming", "3.8M", "28:14", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80"),
+      video("The Beginner's Guide to Clean Home Networking", "Signal Lab", "Tech", "1.1M", "17:42", "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80"),
+      video("Why Cozy Games Took Over", "Essay Works", "Video Essay", "842K", "39:08", "https://images.unsplash.com/photo-1605901309584-818e25960a8f?auto=format&fit=crop&w=900&q=80"),
+      video("One Pan Dinner That Actually Works", "Plate Theory", "Cooking", "2.4M", "11:36", "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80"),
+      video("Desk Setup Tour for Small Rooms", "Craft Logic", "DIY", "670K", "14:19", "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=900&q=80"),
+      video("A Realistic Week in Tokyo", "Road Notes", "Travel", "930K", "26:52", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80"),
+      video("Workout Plan for Busy Creators", "Peak Form", "Fitness", "514K", "18:03", "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80"),
+      video("Budget Microphones Tested Side by Side", "Honest Bench", "Reviews", "1.6M", "21:09", "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=900&q=80"),
+      video("Making a Chill Type Beat From Scratch", "Type Beat Atlas", "Music", "388K", "12:47", "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=900&q=80"),
+      video("How to Build Better Upload Habits", "Build Sprint", "How To", "754K", "9:58", "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"),
+      video("Study With Me: Rain Window Session", "Quiet Study", "Study", "2.2M", "2:00:00", "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80"),
+      video("Reading Weird Product Reviews", "Laugh Circuit", "Comedy", "4.9M", "16:22", "https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=900&q=80")
+    ];
+
+    const shorts = [
+      short("Pixel Forge", "Gaming", "Door skip in 19 seconds", "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80"),
+      short("Pixel Forge", "Gaming", "The cleanest clutch", "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=500&q=80"),
+      short("Signal Lab", "Tech", "Tiny router trick", "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=500&q=80"),
+      short("Plate Theory", "Cooking", "Crispy edge test", "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80"),
+      short("Build Sprint", "How To", "3 upload checks", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80"),
+      short("Quiet Study", "Study", "25 minute focus block", "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=500&q=80"),
+      short("Road Notes", "Travel", "Hidden alley coffee", "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=500&q=80"),
+      short("Honest Bench", "Reviews", "Fake vs real cable", "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80")
+    ];
+
+    let activeCategory = localStorage.getItem("vryse_category") || "Gaming";
+    let searchTerm = "";
+    let runnerItems = [];
+
+    function video(title, channel, category, views, duration, thumb) {
+      return { title, channel, category, views, duration, thumb, time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)] };
     }
-    alert(`Welcome to your channel, ${currentUser.username}!\n\nYour uploaded videos appear here.`);
-}
 
-function toggleSidebar() {
-    const sb = document.getElementById('sidebar');
-    sb.style.transform = (sb.style.transform === 'translateX(0px)') ? 'translateX(-240px)' : 'translateX(0px)';
-}
+    function short(channel, category, title, thumb) {
+      return { channel, category, title, thumb, views: Math.floor(Math.random() * 900 + 100) + "K" };
+    }
 
-// Init
-window.onload = () => {
-    updateUI();
-    renderHome();
-};
-</script>
+    function showView(view) {
+      ["home", "shorts", "channels", "runner", "studio", "editor", "moderation", "channel", "analytics"].forEach(name => {
+        document.getElementById(name + "View").classList.toggle("hidden", name !== view);
+      });
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.view === view));
+      if (view === "channels") renderChannels();
+      if (view === "shorts") renderShorts();
+      if (view === "runner") renderRunnerList();
+      if (view === "channel") renderOwnChannel();
+      if (view === "analytics") renderAnalytics();
+      if (view === "moderation") renderModeration();
+    }
+
+    function setCategory(category) {
+      activeCategory = category;
+      localStorage.setItem("vryse_category", activeCategory);
+      renderAll();
+    }
+
+    function filteredVideos() {
+      return videos.filter(item => item.category === activeCategory && matchesSearch(item));
+    }
+
+    function matchesSearch(item) {
+      const haystack = `${item.title} ${item.channel} ${item.category}`.toLowerCase();
+      return haystack.includes(searchTerm.toLowerCase());
+    }
+
+    function renderCategories() {
+      const chips = document.getElementById("categoryChips");
+      chips.innerHTML = categories.map(category => `<button class="chip ${category === activeCategory ? "active" : ""}" onclick="setCategory('${category}')">${category}</button>`).join("");
+      const shortCategory = document.getElementById("shortCategory");
+      const draftCategory = document.getElementById("draftCategory");
+      [shortCategory, draftCategory].forEach(select => {
+        select.innerHTML = categories.map(category => `<option ${category === activeCategory ? "selected" : ""}>${category}</option>`).join("");
+      });
+    }
+
+    function renderHome() {
+      document.getElementById("homeTitle").textContent = activeCategory === "Gaming" ? "Vryse" : `Vryse: ${activeCategory}`;
+      document.getElementById("homeSubtitle").textContent = `Showing random channels and videos matched to ${activeCategory}.`;
+      renderChannelStrip("channelStrip", randomCategoryChannels());
+      const rows = filteredVideos();
+      document.getElementById("videoGrid").innerHTML = rows.map(renderVideoCard).join("") || emptyState("No videos match this search.");
+    }
+
+    function renderVideoCard(item) {
+      const avatar = item.channel[0];
+      return `<article class="video-card" onclick='openPlayer(${JSON.stringify(item).replaceAll("'", "&#39;")})'>
+        <div class="thumb"><img src="${item.thumb || "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80"}" alt="${item.title}"><span class="duration">${item.duration}</span></div>
+        <div class="video-info">
+          <div class="mini-avatar">${avatar}</div>
+          <div>
+            <p class="title">${item.title}</p>
+            <div class="meta">${item.channel}<br>${item.views} views | ${item.time}</div>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function renderChannelStrip(targetId, list) {
+      document.getElementById(targetId).innerHTML = list.map(channel => `<article class="channel-card">
+        <div class="mini-avatar">${channel.avatar}</div>
+        <div>
+          <p class="title">${channel.name}</p>
+          <div class="meta">${channel.subs} subscribers | Trust ${channel.trust}</div>
+          <span class="badge"><i class="fa-solid fa-layer-group"></i>${channel.category}</span>
+        </div>
+      </article>`).join("");
+    }
+
+    function randomCategoryChannels() {
+      const categoryChannels = channels.filter(channel => channel.category === activeCategory);
+      const nearby = channels.filter(channel => channel.category !== activeCategory).sort(() => Math.random() - 0.5).slice(0, 3);
+      return [...categoryChannels, ...nearby].sort(() => Math.random() - 0.5).slice(0, 4);
+    }
+
+    function randomizeChannels() {
+      renderChannelStrip("channelStrip", randomCategoryChannels());
+      renderChannels();
+    }
+
+    function renderChannels() {
+      renderChannelStrip("discoverChannels", randomCategoryChannels().concat(channels.filter(c => c.category === activeCategory)));
+    }
+
+    function renderShorts() {
+      const grouped = shorts.filter(s => s.category === activeCategory).reduce((acc, item) => {
+        acc[item.channel] = acc[item.channel] || [];
+        acc[item.channel].push(item);
+        return acc;
+      }, {});
+      document.getElementById("shortsByChannel").innerHTML = Object.keys(grouped).map(channel => `
+        <div class="section-head"><h2>${channel}</h2><span class="badge">${activeCategory}</span></div>
+        <div class="shorts-row">${grouped[channel].map(renderShortCard).join("")}</div>
+      `).join("") || emptyState("No Shorts in this category yet.");
+    }
+
+    function renderShortCard(item) {
+      return `<article class="short-card" onclick='openPlayer(${JSON.stringify({ ...item, duration: "0:41" }).replaceAll("'", "&#39;")})'>
+        <div class="short-thumb"><img src="${item.thumb}" alt="${item.title}"><span class="duration">Short</span></div>
+        <p class="title">${item.title}</p>
+        <div class="meta">${item.views} views</div>
+      </article>`;
+    }
+
+    function renderModeration() {
+      const flags = [
+        ["Comment raid detected", "Laugh Circuit", 88, "Temporary hold applied"],
+        ["Copyright similarity", "Type Beat Atlas", 67, "Needs reviewer decision"],
+        ["Medical claim check", "Peak Form", 74, "Source review requested"],
+        ["Spoiler complaints", "Essay Works", 31, "Low risk"]
+      ];
+      document.getElementById("moderationQueue").innerHTML = flags.map(([title, channel, risk, note]) => `
+        <article class="queue-item">
+          <div class="queue-top"><b>${title}</b><span class="badge">${risk}% risk</span></div>
+          <div class="meta">${channel} | ${note}</div>
+          <div class="risk"><span style="width:${risk}%"></span></div>
+          <div class="toolbar"><button class="btn success"><i class="fa-solid fa-check"></i> Approve</button><button class="btn warn"><i class="fa-solid fa-pause"></i> Hold</button><button class="btn primary"><i class="fa-solid fa-ban"></i> Remove</button></div>
+        </article>`).join("");
+    }
+
+    function renderOwnChannel() {
+      renderChannelStrip("ownChannelStats", [{ name: "Vryse Creator", category: activeCategory, trust: 96, subs: "124K", avatar: "V" }]);
+      document.getElementById("ownVideos").innerHTML = videos.slice(0, 4).map(renderVideoCard).join("");
+      document.getElementById("ownShorts").innerHTML = shorts.slice(0, 4).map(renderShortCard).join("");
+    }
+
+    function renderAnalytics() {
+      const cards = categories.slice(0, 8).map((category, index) => `
+        <article class="queue-item">
+          <div class="queue-top"><b>${category}</b><span class="badge">${84 - index * 3}/100</span></div>
+          <div class="meta">vidIQ score blends demand, title competition, upload timing, viewer intent, and channel fit.</div>
+          <div class="meta"><b>Creator move:</b> ${creatorMove(category, index)}</div>
+          <div class="risk"><span style="width:${84 - index * 3}%; background:${index % 2 ? "var(--cyan)" : "var(--green)"}"></span></div>
+        </article>`);
+      document.getElementById("analyticsCards").innerHTML = cards.join("");
+    }
+
+    function creatorMove(category, index) {
+      const moves = [
+        `make a beginner-friendly ${category.toLowerCase()} guide with a clearer before/after thumbnail`,
+        `turn your best ${category.toLowerCase()} moment into a Short, then link it to the full video`,
+        `publish a comparison title because viewers are searching for choices in ${category.toLowerCase()}`,
+        `add chapters and a pinned question to improve retention and comments`,
+        `test a more direct title with the main result in the first five words`
+      ];
+      return moves[index % moves.length];
+    }
+
+    function publishDraft() {
+      const title = document.getElementById("draftTitle").value.trim();
+      const category = document.getElementById("draftCategory").value;
+      const type = document.getElementById("draftType").value;
+      if (!title) return;
+      if (type === "short") {
+        shorts.unshift(short("Vryse Creator", category, title, "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80"));
+      } else {
+        videos.unshift(video(title, "Vryse Creator", category, "Just now", "12:00", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80"));
+      }
+      setCategory(category);
+      showView(type === "short" ? "shorts" : "home");
+    }
+
+    function openPlayer(item) {
+      const media = document.getElementById("playerMedia");
+      if (item.source === "youtube") {
+        media.innerHTML = `<iframe src="${item.embedUrl}" title="${item.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+      } else if (item.source === "file") {
+        media.innerHTML = `<video src="${item.fileUrl}" controls autoplay></video>`;
+      } else {
+        media.innerHTML = `<img id="playerImage" src="${item.thumb}" alt="Selected video">`;
+      }
+      document.getElementById("playerTitle").textContent = item.title;
+      document.getElementById("playerMeta").textContent = `${item.channel} | ${item.views || "New"} views | ${item.category}`;
+      document.getElementById("upNext").innerHTML = filteredVideos().slice(0, 4).map(v => `<button class="queue-item" onclick='openPlayer(${JSON.stringify(v).replaceAll("'", "&#39;")})'><b>${v.title}</b><span class="meta">${v.channel}</span></button>`).join("");
+      document.getElementById("player").classList.add("open");
+    }
+
+    function closePlayer() {
+      document.getElementById("player").classList.remove("open");
+      document.getElementById("playerMedia").innerHTML = "";
+    }
+
+    function handleVideoFiles(fileList) {
+      Array.from(fileList).filter(file => file.type.startsWith("video/")).forEach(file => {
+        const item = {
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          channel: "Local file",
+          category: "Runner",
+          views: "Private",
+          duration: "File",
+          source: "file",
+          fileUrl: URL.createObjectURL(file)
+        };
+        runnerItems.unshift(item);
+      });
+      renderRunnerList();
+      if (runnerItems[0]) runItem(runnerItems[0]);
+    }
+
+    function addYoutubeVideo() {
+      const input = document.getElementById("youtubeUrlInput");
+      const videoId = getYoutubeId(input.value.trim());
+      if (!videoId) {
+        input.value = "";
+        input.placeholder = "Paste a valid YouTube video or Shorts link";
+        return;
+      }
+      const item = {
+        title: `YouTube video ${videoId}`,
+        channel: "YouTube import",
+        category: activeCategory,
+        views: "From YouTube",
+        duration: "Embed",
+        source: "youtube",
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        thumb: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+      };
+      videos.unshift(item);
+      runnerItems.unshift(item);
+      input.value = "";
+      renderHome();
+      renderRunnerList();
+      runItem(item);
+    }
+
+    function getYoutubeId(url) {
+      const patterns = [
+        /youtube\.com\/watch\?v=([^&]+)/,
+        /youtu\.be\/([^?&]+)/,
+        /youtube\.com\/shorts\/([^?&/]+)/,
+        /youtube\.com\/embed\/([^?&/]+)/
+      ];
+      const match = patterns.map(pattern => url.match(pattern)).find(Boolean);
+      return match ? match[1] : "";
+    }
+
+    function runItem(item) {
+      const player = document.getElementById("runnerPlayer");
+      if (item.source === "youtube") {
+        player.innerHTML = `<iframe src="${item.embedUrl}" title="${item.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+      } else {
+        player.innerHTML = `<video src="${item.fileUrl}" controls autoplay></video>`;
+      }
+    }
+
+    function renderRunnerList() {
+      const list = document.getElementById("runnerList");
+      if (!list) return;
+      list.innerHTML = runnerItems.map((item, index) => `
+        <button class="idea-pill" onclick="runItem(runnerItems[${index}])">
+          <span>${item.title}</span>
+          <b>${item.source === "youtube" ? "YT" : "File"}</b>
+        </button>
+      `).join("") || `<div class="queue-item"><b>No runner videos yet</b><span class="meta">Add local files or paste a YouTube link.</span></div>`;
+    }
+
+    function clearRunner() {
+      runnerItems.filter(item => item.source === "file").forEach(item => URL.revokeObjectURL(item.fileUrl));
+      runnerItems = [];
+      document.getElementById("runnerPlayer").innerHTML = `<span class="meta">Choose a video file or paste a YouTube link.</span>`;
+      renderRunnerList();
+    }
+
+    function emptyState(text) {
+      return `<div class="upload-box"><b>${text}</b></div>`;
+    }
+
+    function renderAll() {
+      renderCategories();
+      renderHome();
+      renderShorts();
+      renderChannels();
+      renderOwnChannel();
+      renderAnalytics();
+      renderModeration();
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", event => {
+      event.preventDefault();
+      searchTerm = document.getElementById("searchInput").value.trim();
+      showView("home");
+      renderHome();
+    });
+
+    const dropZone = document.getElementById("dropZone");
+    dropZone.addEventListener("dragover", event => {
+      event.preventDefault();
+      dropZone.classList.add("dragging");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragging"));
+    dropZone.addEventListener("drop", event => {
+      event.preventDefault();
+      dropZone.classList.remove("dragging");
+      handleVideoFiles(event.dataTransfer.files);
+    });
+
+    renderAll();
+  </script>
 </body>
 </html>
