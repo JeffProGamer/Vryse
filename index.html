@@ -25,6 +25,10 @@
       --radius: 8px;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -34,6 +38,29 @@
       color: var(--text);
       font-family: Inter, Roboto, Arial, sans-serif;
       letter-spacing: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    body::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    body::-webkit-scrollbar-track {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border-left: 1px solid rgba(255,255,255,0.05);
+    }
+
+    body::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--cyan), var(--red));
+      border-radius: 999px;
+      border: 2px solid rgba(8, 10, 14, 0.8);
+      box-shadow: inset 0 0 8px rgba(255,255,255,0.12);
+    }
+
+    body::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #46d6e8, #ff5b6e);
     }
 
     button, input, select, textarea {
@@ -166,6 +193,17 @@
       font-size: 26px;
     }
 
+    .menu-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+    }
+
     .mark {
       width: 38px;
       height: 28px;
@@ -241,6 +279,10 @@
       transition: opacity 700ms ease, transform 700ms ease;
     }
 
+    .shell.sidebar-collapsed {
+      grid-template-columns: 74px 1fr;
+    }
+
     .shell.ready {
       opacity: 1;
       transform: translateY(0);
@@ -255,6 +297,43 @@
       border-right: 1px solid var(--line);
       background: #0d1014;
       overflow: auto;
+      transition: width 220ms ease;
+      scrollbar-width: none;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(91,168,255,0.7), rgba(255,61,79,0.7));
+      border-radius: 999px;
+    }
+
+    .sidebar.collapsed {
+      width: 74px;
+    }
+
+    .sidebar-toggle {
+      width: 100%;
+      height: 40px;
+      margin-bottom: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .sidebar.collapsed .sidebar-toggle span {
+      display: none;
     }
 
     .nav-btn {
@@ -270,6 +349,18 @@
       gap: 8px;
       padding: 0 12px;
       text-align: left;
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    .sidebar.collapsed .nav-btn {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      padding: 0 8px;
+      text-align: center;
+    }
+
+    .sidebar.collapsed .nav-btn span {
+      display: none;
     }
 
     .nav-btn:hover, .nav-btn.active {
@@ -296,7 +387,25 @@
       gap: 10px;
       overflow-x: auto;
       padding-bottom: 14px;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+    }
+
+    .chips::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .chips::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chips::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, var(--cyan), var(--red));
+      border-radius: 999px;
+    }
+
+    .chip {
+      scroll-snap-align: start;
     }
 
     .chip {
@@ -328,6 +437,21 @@
       letter-spacing: 0;
     }
 
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(91, 168, 255, 0.14);
+      color: var(--cyan);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
     .section-head p {
       margin: 4px 0 0;
       color: var(--muted);
@@ -345,6 +469,45 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       overflow: hidden;
+      position: relative;
+    }
+
+    .feed-loader {
+      margin-top: 22px;
+      padding: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .channel-link {
+      color: var(--cyan);
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .channel-link:hover {
+      color: white;
+    }
+
+    .video-card::before, .channel-card::before, .short-card::before, .upload-box::before, .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+      transform: translateX(-110%);
+      pointer-events: none;
+      transition: transform 500ms ease;
+    }
+
+    .video-card:hover::before, .channel-card:hover::before, .short-card:hover::before, .upload-box:hover::before, .hero:hover::before {
+      transform: translateX(110%);
     }
 
     .video-card, .channel-card, .queue-item, .edit-panel, .stat, .upload-box, .short-card, .hero, .hero-panel, .profile-hero, .playlist-card, .modal-card {
@@ -418,6 +581,46 @@
       gap: 12px;
       flex-wrap: wrap;
       font-size: 14px;
+    }
+
+    .trending-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin: 16px 0 24px;
+    }
+
+    .trending-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(91, 168, 255, 0.14), rgba(255, 61, 79, 0.1));
+    }
+
+    .trending-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    .trending-card .meta {
+      color: var(--soft);
+      line-height: 1.5;
+    }
+
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--yellow);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
 
     .profile-hero {
@@ -957,6 +1160,14 @@
         border-bottom: 1px solid var(--line);
       }
 
+      .shell.sidebar-collapsed {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar.collapsed {
+        width: auto;
+      }
+
       .nav-label { display: none; }
       .nav-btn {
         min-width: 52px;
@@ -1019,6 +1230,7 @@
 
   <header class="topbar">
     <div class="brand">
+      <button class="menu-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
       <span class="mark"><i class="fa-solid fa-play"></i></span>
       <span>Vryse</span>
     </div>
@@ -1033,8 +1245,9 @@
     </div>
   </header>
 
-  <div class="shell">
+  <div class="shell" id="appShell">
     <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i><span>Collapse</span></button>
       <button class="nav-btn active" data-view="home" onclick="showView('home')"><i class="fa-solid fa-house"></i><span>Vryse</span></button>
       <button class="nav-btn" data-view="shorts" onclick="showView('shorts')"><i class="fa-solid fa-bolt"></i><span>Shorts</span></button>
       <button class="nav-btn" data-view="channels" onclick="showView('channels')"><i class="fa-solid fa-users"></i><span>Subscriptions</span></button>
@@ -1052,12 +1265,12 @@
         <div class="hero">
           <div>
             <div class="hero-badges">
-              <span class="badge">New</span>
+              <span class="badge">Popular</span>
               <span class="badge">Creator-first</span>
-              <span class="badge">AI-assisted</span>
+              <span class="badge">YouTube-style</span>
             </div>
             <h2>Build a calmer, smarter video workflow from upload to audience growth.</h2>
-            <p>Vryse brings your uploads, Shorts, studio insights, and moderation tools into one polished workspace so you can focus on making better content.</p>
+            <p>Vryse brings your uploads, Shorts, studio insights, moderation, and live-style engagement into one polished workspace so your content feels like a real creator channel.</p>
             <div class="toolbar">
               <button class="btn primary" onclick="showView('runner')"><i class="fa-solid fa-video"></i> Start an upload</button>
               <button class="btn" onclick="showView('studio')"><i class="fa-solid fa-chart-line"></i> Open studio</button>
@@ -1069,15 +1282,34 @@
             <div class="hero-row"><span class="meta">Suggested next move</span><strong>Turn a strong clip into a Short</strong></div>
           </div>
         </div>
+        <div class="trending-row">
+          <article class="trending-card">
+            <div class="mini-badge"><i class="fa-solid fa-fire"></i> Trending now</div>
+            <strong>Creator uploads are climbing fast</strong>
+            <div class="meta">Fresh community reactions, stronger retention, and better Shorts performance are all flowing in.</div>
+          </article>
+          <article class="trending-card">
+            <div class="mini-badge"><i class="fa-solid fa-bolt"></i> Popular picks</div>
+            <strong>Shorts are driving repeat viewers</strong>
+            <div class="meta">The newest clips and channel moments are being surfaced as quick, digestible highlights.</div>
+          </article>
+          <article class="trending-card">
+            <div class="mini-badge"><i class="fa-solid fa-users"></i> Community</div>
+            <strong>Live comments and subscriptions keep momentum high</strong>
+            <div class="meta">Your audience can now engage with clearer reactions, likes, and follow actions in one place.</div>
+          </article>
+        </div>
         <div class="chips" id="categoryChips"></div>
         <div class="section-head">
           <div>
+            <span class="eyebrow"><i class="fa-solid fa-fire"></i> For you</span>
             <h1 id="homeTitle">Vryse</h1>
             <div class="meta" id="searchStatus">Live feed is updating in real time.</div>
           </div>
         </div>
         <div class="channel-strip" id="channelStrip"></div>
         <div class="grid" id="videoGrid"></div>
+        <div class="feed-loader" id="feedLoader">Scroll down to load more recommendations</div>
         <footer class="footer">
           <span>Vryse is designed for creators who want clean workflows and faster publishing.</span>
           <span>Tip: search by title, channel, or category to jump straight to the content you need.</span>
@@ -1330,6 +1562,10 @@
     let activeCategory = localStorage.getItem("vryse_category") || "Gaming";
     let searchTerm = "";
     let runnerItems = [];
+    let sidebarCollapsed = localStorage.getItem("vryse_sidebar_collapsed") === "1";
+    let visibleVideoCount = 8;
+    let isLoadingMore = false;
+    let loadedFeedBatch = 0;
     let currentUser = JSON.parse(localStorage.getItem("vryse_user")) || null;
     let activePlayerItem = null;
     let moderationFlags = [
@@ -1499,6 +1735,23 @@
       localStorage.setItem("vryse_subscriptions", JSON.stringify(subscriptions));
     }
 
+    function applySidebarState() {
+      const shell = document.getElementById("appShell");
+      const sidebar = document.getElementById("sidebar");
+      if (!shell || !sidebar) return;
+      shell.classList.toggle("sidebar-collapsed", sidebarCollapsed);
+      sidebar.classList.toggle("collapsed", sidebarCollapsed);
+      localStorage.setItem("vryse_sidebar_collapsed", sidebarCollapsed ? "1" : "0");
+      document.querySelectorAll(".sidebar-toggle span").forEach(label => {
+        label.textContent = sidebarCollapsed ? "Expand" : "Collapse";
+      });
+    }
+
+    function toggleSidebar() {
+      sidebarCollapsed = !sidebarCollapsed;
+      applySidebarState();
+    }
+
     function startLiveActivity() {
       window.setInterval(() => {
         const liveCandidates = [...videos, ...shorts].filter(item => item.source !== "file");
@@ -1618,6 +1871,29 @@
       return videos.filter(item => (item.category === activeCategory || item.source === "youtube") && matchesSearch(item));
     }
 
+    function visibleVideos() {
+      return filteredVideos().slice(0, visibleVideoCount);
+    }
+
+    async function loadMoreVideos() {
+      if (isLoadingMore || visibleVideoCount >= filteredVideos().length) return;
+      isLoadingMore = true;
+      const loader = document.getElementById("feedLoader");
+      if (loader) {
+        loader.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading more videos...';
+      }
+      await new Promise(resolve => setTimeout(resolve, 700));
+      visibleVideoCount += 4;
+      loadedFeedBatch += 1;
+      renderHome();
+      isLoadingMore = false;
+      if (loader) {
+        loader.innerHTML = visibleVideoCount >= filteredVideos().length
+          ? 'You reached the end of the live feed.'
+          : 'Scroll down to load more recommendations';
+      }
+    }
+
     function matchesSearch(item) {
       const haystack = `${item.title} ${item.channel} ${item.category}`.toLowerCase();
       return haystack.includes(searchTerm.toLowerCase());
@@ -1720,7 +1996,7 @@
     function renderHome() {
       const title = currentUser ? `${currentUser.displayName || currentUser.username || "Creator"}'s feed` : "Vryse";
       document.getElementById("homeTitle").textContent = title;
-      const rows = filteredVideos();
+      const rows = visibleVideos();
       document.getElementById("videoGrid").innerHTML = rows.map(renderVideoCard).join("") || emptyState("No videos match this search yet.");
       renderChannelStrip("channelStrip", subscriptions.slice(0, 6));
       updateAccountUi();
@@ -1728,13 +2004,20 @@
       const searchStatus = document.getElementById("searchStatus");
       if (searchStatus) {
         searchStatus.textContent = searchTerm
-          ? `Showing ${rows.length} live matches for “${searchTerm}”.`
-          : `Showing ${rows.length} live videos in ${activeCategory}.`;
+          ? `Showing ${rows.length} of ${filteredVideos().length} live matches for “${searchTerm}”.`
+          : `Showing ${rows.length} of ${filteredVideos().length} live videos in ${activeCategory}.`;
+      }
+      const loader = document.getElementById("feedLoader");
+      if (loader) {
+        loader.innerHTML = rows.length >= filteredVideos().length
+          ? 'You reached the end of the live feed.'
+          : 'Scroll down to load more recommendations';
       }
     }
 
     function renderVideoCard(item) {
       const avatar = (item.channel || "V").slice(0, 1).toUpperCase();
+      const channelSlug = encodeURIComponent((item.channel || "channel").toLowerCase().replace(/\s+/g, "-"));
       return `<article class="video-card" onclick='openPlayer(${JSON.stringify(item).replaceAll("'", "&#39;")})'>
         <div class="thumb"><img src="${item.thumb || "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=900&q=80"}" alt="${item.title}"><span class="duration">${item.duration}</span></div>
         <div class="video-info">
@@ -1742,6 +2025,7 @@
           <div>
             <p class="title">${item.title}</p>
             <div class="meta">${item.channel}<br>${item.views || "New"} • ${formatCount(item.viewsCount || 0)} views • ${formatCount(item.likesCount || 0)} likes</div>
+            <a class="channel-link" href="https://www.youtube.com/results?search_query=${channelSlug}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()"><i class="fa-brands fa-youtube"></i> Visit channel</a>
             <div class="meta-row">
               <span><i class="fa-solid fa-eye"></i> ${formatCount(item.viewsCount || 0)}</span>
               <span><i class="fa-solid fa-heart"></i> ${formatCount(item.likesCount || 0)}</span>
@@ -2139,6 +2423,11 @@
       if (event.key === "Escape") closePlayer();
     });
 
+    window.addEventListener("scroll", () => {
+      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 220;
+      if (nearBottom) loadMoreVideos();
+    });
+
     document.getElementById("player").addEventListener("click", event => {
       if (event.target.id === "player") closePlayer();
     });
@@ -2178,6 +2467,7 @@
     }
 
     ensureUserProfile();
+    applySidebarState();
     renderAll();
     updateAccountUi();
     revealIntro();
