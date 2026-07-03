@@ -862,6 +862,70 @@
 
     .hidden { display: none !important; }
 
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .meta-row span,
+    .action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .action-pill {
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+
+    .action-pill.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .comment-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .comment-form input {
+      border: 1px solid var(--line);
+      background: #0f1318;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .comment-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .comment-item {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .comment-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
     @media (max-width: 980px) {
       .topbar {
         grid-template-columns: 1fr;
@@ -1009,6 +1073,7 @@
         <div class="section-head">
           <div>
             <h1 id="homeTitle">Vryse</h1>
+            <div class="meta" id="searchStatus">Live feed is updating in real time.</div>
           </div>
         </div>
         <div class="channel-strip" id="channelStrip"></div>
@@ -1221,11 +1286,19 @@
         <div class="wide-media runner-player" id="playerMedia"></div>
         <h2 id="playerTitle"></h2>
         <p class="meta" id="playerMeta"></p>
+        <div class="meta-row" id="playerStats"></div>
+        <div class="toolbar" id="playerActions"></div>
       </div>
       <div class="upload-box">
         <button class="btn" onclick="closePlayer()"><i class="fa-solid fa-xmark"></i> Close</button>
         <h2>Up next</h2>
         <div class="queue" id="upNext"></div>
+        <h3 style="margin:12px 0 6px;">Comments</h3>
+        <div class="comment-list" id="commentsList"></div>
+        <form class="comment-form" onsubmit="submitComment(event)">
+          <input id="commentInput" type="text" placeholder="Add a live comment">
+          <button class="btn primary" type="submit">Post</button>
+        </form>
       </div>
     </div>
   </div>
@@ -1258,8 +1331,61 @@
     let searchTerm = "";
     let runnerItems = [];
     let currentUser = JSON.parse(localStorage.getItem("vryse_user")) || null;
+    let activePlayerItem = null;
+    let moderationFlags = [
+      { id: 1, title: "Comment spam", source: "Pixel Forge", risk: 92, note: "Auto-held for review", status: "Pending" },
+      { id: 2, title: "Copyright similarity", source: "Signal Lab", risk: 69, note: "Needs a second pass", status: "Pending" },
+      { id: 3, title: "Misleading title", source: "Essay Works", risk: 58, note: "Suggested rewrite sent", status: "Pending" }
+    ];
     const introScreen = document.getElementById("introScreen");
     const shell = document.querySelector(".shell");
+    const youtubeSeedItems = [
+      {
+        title: "The Beginner's Guide to Clean Home Networking",
+        channel: "Signal Lab",
+        category: "Tech",
+        views: "1.1M",
+        duration: "17:42",
+        thumb: "https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg",
+        videoId: "aqz-KE-bpKQ",
+        embedUrl: "https://www.youtube.com/embed/aqz-KE-bpKQ"
+      },
+      {
+        title: "Why Cozy Games Took Over",
+        channel: "Essay Works",
+        category: "Video Essay",
+        views: "842K",
+        duration: "39:08",
+        thumb: "https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg",
+        videoId: "ScMzIvxBSi4",
+        embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4"
+      },
+      {
+        title: "One Pan Dinner That Actually Works",
+        channel: "Plate Theory",
+        category: "Cooking",
+        views: "2.4M",
+        duration: "11:36",
+        thumb: "https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg",
+        videoId: "9bZkp7q19f0",
+        embedUrl: "https://www.youtube.com/embed/9bZkp7q19f0"
+      },
+      {
+        title: "Speedrunning a City Build in 24 Hours",
+        channel: "Pixel Forge",
+        category: "Gaming",
+        views: "3.8M",
+        duration: "28:14",
+        thumb: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+        videoId: "dQw4w9WgXcQ",
+        embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      }
+    ];
+    const youtubeFeedSources = [
+      { label: "Gaming", channelId: "UCX6OQ3DkcsbYNE6H8uQQuVA", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCX6OQ3DkcsbYNE6H8uQQuVA" },
+      { label: "Tech", channelId: "UCBJycsmduvYEL83R_U4JriQ", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCBJycsmduvYEL83R_U4JriQ" },
+      { label: "Learning", channelId: "UCEBb1b_L6zDS3xTUrial140", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCEBb1b_L6zDS3xTUrial140" }
+    ];
 
     const defaultChannels = [
       { name: "Pixel Forge", category: "Gaming", trust: 98, subs: "8.4M", avatar: "P", description: "Fast-paced speedruns and city-build challenges." },
@@ -1276,26 +1402,87 @@
 
     let subscriptions = JSON.parse(localStorage.getItem("vryse_subscriptions")) || defaultChannels;
 
+    function parseCountValue(value) {
+      if (typeof value === "number") return value;
+      const normalized = `${value || ""}`.toUpperCase();
+      if (!normalized) return 0;
+      if (normalized.includes("M")) return parseFloat(normalized) * 1000000;
+      if (normalized.includes("K")) return parseFloat(normalized) * 1000;
+      return Number(normalized.replace(/[^0-9]/g, "")) || 0;
+    }
+
+    function formatCount(value) {
+      const amount = Number(value) || 0;
+      if (amount >= 1000000) return `${(amount / 1000000).toFixed(amount >= 10000000 ? 0 : 1)}M`;
+      if (amount >= 1000) return `${(amount / 1000).toFixed(amount >= 10000 ? 0 : 1)}K`;
+      return `${amount}`;
+    }
+
+    function ensureItemMetrics(item) {
+      if (!item) return item;
+      item.viewsCount = Number(item.viewsCount) || parseCountValue(item.views);
+      item.likesCount = Number(item.likesCount) || 1200 + Math.floor(Math.random() * 4000);
+      item.commentsCount = Number(item.commentsCount) || (Array.isArray(item.comments) ? item.comments.length : 0);
+      item.comments = Array.isArray(item.comments) ? item.comments : [{ author: "Mina", text: "This one is really landing.", time: "just now" }];
+      item.tags = Array.isArray(item.tags) ? item.tags : [item.category?.toLowerCase(), item.channel?.toLowerCase()];
+      item.liked = Boolean(item.liked);
+      item.subscribed = Boolean(item.subscribed);
+      return item;
+    }
+
+    function findItemInLibrary(item) {
+      if (!item) return null;
+      return [...videos, ...shorts].find(candidate =>
+        candidate.title === item.title &&
+        candidate.channel === item.channel &&
+        (candidate.videoId || "") === (item.videoId || "")
+      ) || null;
+    }
+
+    function createComment(text, author = currentUser?.displayName || currentUser?.username || "Viewer") {
+      return { author, text, time: "now" };
+    }
+
     function makeVideo(title, channel, category, views, duration, thumb, extra = {}) {
-      return { title, channel, category, views, duration, thumb, time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)], ...extra };
+      const baseComments = Array.isArray(extra.comments) ? extra.comments : [{ author: "Mina", text: "This is landing really well.", time: "now" }];
+      return ensureItemMetrics({
+        title,
+        channel,
+        category,
+        views,
+        duration,
+        thumb,
+        time: ["1h ago", "Today", "2d ago", "1w ago"][Math.floor(Math.random() * 4)],
+        comments: baseComments,
+        likesCount: Number(extra.likesCount) || 1200 + Math.floor(Math.random() * 4000),
+        viewsCount: parseCountValue(views),
+        liked: false,
+        tags: extra.tags || [category.toLowerCase(), channel.toLowerCase()],
+        ...extra
+      });
     }
 
     function makeShort(channel, category, title, thumb, extra = {}) {
-      return { channel, category, title, thumb, views: Math.floor(Math.random() * 900 + 100) + "K", ...extra };
+      const views = `${extra.views || `${Math.floor(Math.random() * 900 + 100)}K`}`;
+      const baseComments = Array.isArray(extra.comments) ? extra.comments : [{ author: "Rory", text: "Shorts like this keep me watching.", time: "now" }];
+      return ensureItemMetrics({
+        channel,
+        category,
+        title,
+        thumb,
+        views,
+        viewsCount: parseCountValue(views),
+        likesCount: Number(extra.likesCount) || 400 + Math.floor(Math.random() * 1800),
+        comments: baseComments,
+        liked: false,
+        tags: extra.tags || [category.toLowerCase(), channel.toLowerCase()],
+        ...extra
+      });
     }
 
-    const defaultVideos = [
-      makeVideo("Speedrunning a City Build in 24 Hours", "Pixel Forge", "Gaming", "3.8M", "28:14", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ" }),
-      makeVideo("The Beginner's Guide to Clean Home Networking", "Signal Lab", "Tech", "1.1M", "17:42", "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/aqz-KE-bpKQ" }),
-      makeVideo("Why Cozy Games Took Over", "Essay Works", "Video Essay", "842K", "39:08", "https://images.unsplash.com/photo-1605901309584-818e25960a8f?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4" }),
-      makeVideo("One Pan Dinner That Actually Works", "Plate Theory", "Cooking", "2.4M", "11:36", "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80", { source: "youtube", embedUrl: "https://www.youtube.com/embed/9bZkp7q19f0" })
-    ];
+    const defaultVideos = youtubeSeedItems.slice(0, 4).map(item => makeVideo(item.title, item.channel, item.category, item.views, item.duration, item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId }));
 
-    const defaultShorts = [
-      makeShort("Pixel Forge", "Gaming", "Door skip in 19 seconds", "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=500&q=80"),
-      makeShort("Signal Lab", "Tech", "Tiny router trick", "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=500&q=80"),
-      makeShort("Build Sprint", "How To", "3 upload checks", "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=500&q=80")
-    ];
+    const defaultShorts = youtubeSeedItems.slice(0, 3).map(item => makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", videoId: item.videoId }));
 
     let videos = JSON.parse(localStorage.getItem("vryse_videos")) || defaultVideos;
     let shorts = JSON.parse(localStorage.getItem("vryse_shorts")) || defaultShorts;
@@ -1312,6 +1499,22 @@
       localStorage.setItem("vryse_subscriptions", JSON.stringify(subscriptions));
     }
 
+    function startLiveActivity() {
+      window.setInterval(() => {
+        const liveCandidates = [...videos, ...shorts].filter(item => item.source !== "file");
+        if (!liveCandidates.length) return;
+        liveCandidates.sort(() => 0.5 - Math.random()).slice(0, 3).forEach(item => {
+          item.viewsCount = (item.viewsCount || 0) + Math.round(Math.random() * 160 + 20);
+          item.views = formatCount(item.viewsCount);
+          if (Math.random() > 0.65) item.likesCount = (item.likesCount || 0) + 1;
+        });
+        persistLibrary();
+        if (document.getElementById("videoGrid")) renderHome();
+        if (document.getElementById("shortsByChannel")) renderShorts();
+        if (activePlayerItem) renderPlayerState();
+      }, 4500);
+    }
+
     function ensureUserProfile() {
       if (!currentUser) return;
       currentUser.avatarUrl = currentUser.avatarUrl || getFallbackAvatar(currentUser.username || currentUser.displayName || "V");
@@ -1322,6 +1525,69 @@
       subscriptions = currentUser.subscriptions;
       localStorage.setItem("vryse_user", JSON.stringify(currentUser));
       persistLibrary();
+    }
+
+    async function loadYouTubeContent() {
+      const fetchedVideos = [];
+      const fetchedShorts = [];
+
+      for (const source of youtubeFeedSources) {
+        try {
+          const feedCandidates = [
+            source.url,
+            `https://r.jina.ai/http://https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
+          ];
+
+          for (const candidate of feedCandidates) {
+            const response = await fetch(candidate, { mode: "cors" });
+            if (!response.ok) continue;
+
+            const text = await response.text();
+            const entries = [...text.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(match => match[1]);
+
+            entries.slice(0, 4).forEach(entry => {
+              const videoId = (entry.match(/<yt:videoId>([^<]+)/) || [])[1] || "";
+              const title = (entry.match(/<title>([^<]+)/) || [])[1] || "YouTube upload";
+              const thumb = (entry.match(/<media:thumbnail[^>]+url="([^"]+)"/) || [])[1] || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+              const channelName = (entry.match(/<name>([^<]+)/) || [])[1] || source.label;
+              const cleanTitle = title.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+              const videoItem = makeVideo(
+                cleanTitle,
+                channelName,
+                source.label,
+                "Live from YouTube",
+                "New",
+                thumb,
+                { source: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId, fromFeed: true }
+              );
+              fetchedVideos.push(videoItem);
+
+              const shortItem = makeShort(channelName, source.label, cleanTitle, thumb, { source: "youtube", fromFeed: true, isShort: /short|shorts/i.test(cleanTitle), videoId });
+              fetchedShorts.push(shortItem);
+            });
+            break;
+          }
+        } catch (error) {
+          console.warn("YouTube feed fetch failed", error);
+        }
+      }
+
+      if (!fetchedVideos.length) {
+        youtubeSeedItems.forEach(item => {
+          fetchedVideos.push(makeVideo(item.title, item.channel, item.category, item.views, item.duration, item.thumb, { source: "youtube", embedUrl: item.embedUrl, videoId: item.videoId, fromFeed: true }));
+          fetchedShorts.push(makeShort(item.channel, item.category, `${item.title} clip`, item.thumb, { source: "youtube", fromFeed: true, isShort: true, videoId: item.videoId }));
+        });
+      }
+
+      if (fetchedVideos.length) {
+        const uniqueVideos = fetchedVideos.filter((item, index, arr) => arr.findIndex(other => other.title === item.title && other.channel === item.channel) === index);
+        const uniqueShorts = fetchedShorts.filter((item, index, arr) => arr.findIndex(other => other.title === item.title && other.channel === item.channel) === index);
+
+        videos = [...uniqueVideos.slice(0, 8), ...videos.filter(item => !item.fromFeed)].slice(0, 16);
+        shorts = [...uniqueShorts.slice(0, 6), ...shorts.filter(item => !item.fromFeed)].slice(0, 12);
+        persistLibrary();
+        renderAll();
+      }
     }
 
     function getFallbackAvatar(name) {
@@ -1349,7 +1615,7 @@
     }
 
     function filteredVideos() {
-      return videos.filter(item => item.category === activeCategory && matchesSearch(item));
+      return videos.filter(item => (item.category === activeCategory || item.source === "youtube") && matchesSearch(item));
     }
 
     function matchesSearch(item) {
@@ -1399,6 +1665,58 @@
       }, 70);
     }
 
+    function toggleLikeItem(item) {
+      const sourceItem = findItemInLibrary(item);
+      if (!sourceItem) return;
+      sourceItem.liked = !sourceItem.liked;
+      sourceItem.likesCount += sourceItem.liked ? 1 : -1;
+      persistLibrary();
+      if (activePlayerItem) activePlayerItem = findItemInLibrary(activePlayerItem) || activePlayerItem;
+      renderHome();
+      renderShorts();
+      renderPlayerState();
+    }
+
+    function toggleSubscribeToChannel(channelName) {
+      const found = subscriptions.find(item => item.name === channelName);
+      if (found) {
+        found.isSubscribed = !found.isSubscribed;
+        found.subsValue = Number(found.subsValue) || parseCountValue(found.subs);
+        found.subsValue += found.isSubscribed ? 1200 : -1200;
+        found.subs = formatCount(Math.max(1000, found.subsValue));
+      } else {
+        subscriptions.unshift({ name: channelName, category: activeCategory, subs: "1.2K", avatar: channelName.slice(0, 1).toUpperCase(), description: "New follow", isSubscribed: true, subsValue: 1200 });
+      }
+      persistLibrary();
+      renderChannels();
+      renderChannelStrip("channelStrip", subscriptions.slice(0, 6));
+      renderOwnChannel();
+      renderHome();
+    }
+
+    function submitComment(event) {
+      event.preventDefault();
+      const input = document.getElementById("commentInput");
+      if (!activePlayerItem || !input.value.trim()) return;
+      const sourceItem = findItemInLibrary(activePlayerItem) || activePlayerItem;
+      sourceItem.comments = sourceItem.comments || [];
+      sourceItem.comments.unshift(createComment(input.value.trim()));
+      sourceItem.commentsCount = sourceItem.comments.length;
+      persistLibrary();
+      input.value = "";
+      renderPlayerState();
+      renderHome();
+      renderShorts();
+    }
+
+    function resolveModeration(id, action) {
+      moderationFlags = moderationFlags.filter(flag => flag.id !== id);
+      if (action === "hold") {
+        moderationFlags.push({ id: Date.now(), title: "Held for review", source: "System", risk: 0, note: "Review queued", status: "Held" });
+      }
+      renderModeration();
+    }
+
     function renderHome() {
       const title = currentUser ? `${currentUser.displayName || currentUser.username || "Creator"}'s feed` : "Vryse";
       document.getElementById("homeTitle").textContent = title;
@@ -1407,6 +1725,12 @@
       renderChannelStrip("channelStrip", subscriptions.slice(0, 6));
       updateAccountUi();
       updateHeroHighlights();
+      const searchStatus = document.getElementById("searchStatus");
+      if (searchStatus) {
+        searchStatus.textContent = searchTerm
+          ? `Showing ${rows.length} live matches for “${searchTerm}”.`
+          : `Showing ${rows.length} live videos in ${activeCategory}.`;
+      }
     }
 
     function renderVideoCard(item) {
@@ -1417,7 +1741,12 @@
           <div class="mini-avatar">${avatar}</div>
           <div>
             <p class="title">${item.title}</p>
-            <div class="meta">${item.channel}<br>${item.views || "New"} views | ${item.time || "Just now"}</div>
+            <div class="meta">${item.channel}<br>${item.views || "New"} • ${formatCount(item.viewsCount || 0)} views • ${formatCount(item.likesCount || 0)} likes</div>
+            <div class="meta-row">
+              <span><i class="fa-solid fa-eye"></i> ${formatCount(item.viewsCount || 0)}</span>
+              <span><i class="fa-solid fa-heart"></i> ${formatCount(item.likesCount || 0)}</span>
+              <span><i class="fa-solid fa-comment"></i> ${(item.comments || []).length}</span>
+            </div>
           </div>
         </div>
       </article>`;
@@ -1433,6 +1762,7 @@
           <div class="meta">${channel.subs} subscribers • ${channel.description || channel.category}</div>
           <span class="badge"><i class="fa-solid fa-layer-group"></i>${channel.category}</span>
         </div>
+        <button class="action-pill ${channel.isSubscribed ? "active" : ""}" onclick="event.stopPropagation(); toggleSubscribeToChannel('${channel.name.replace(/'/g, "\\'")}')">${channel.isSubscribed ? "Subscribed" : "Follow"}</button>
       </article>`).join("");
     }
 
@@ -1442,7 +1772,7 @@
     }
 
     function renderShorts() {
-      const grouped = shorts.filter(s => s.category === activeCategory).reduce((acc, item) => {
+      const grouped = shorts.filter(s => s.category === activeCategory || s.source === "youtube").reduce((acc, item) => {
         acc[item.channel] = acc[item.channel] || [];
         acc[item.channel].push(item);
         return acc;
@@ -1457,24 +1787,24 @@
       return `<article class="short-card" onclick='openPlayer(${JSON.stringify({ ...item, duration: "0:41" }).replaceAll("'", "&#39;")})'>
         <div class="short-thumb"><img src="${item.thumb}" alt="${item.title}"><span class="duration">Short</span></div>
         <p class="title">${item.title}</p>
-        <div class="meta">${item.views} views</div>
+        <div class="meta">${item.views} • ${formatCount(item.likesCount || 0)} likes</div>
+        <div class="meta-row">
+          <span><i class="fa-solid fa-eye"></i> ${formatCount(item.viewsCount || 0)}</span>
+          <span><i class="fa-solid fa-comment"></i> ${(item.comments || []).length}</span>
+        </div>
       </article>`;
     }
 
     function renderModeration() {
-      const flags = [
-        ["Comment raid detected", currentUser ? currentUser.displayName || currentUser.username : "Laugh Circuit", 88, "Temporary hold applied"],
-        ["Copyright similarity", "Type Beat Atlas", 67, "Needs reviewer decision"],
-        ["Medical claim check", "Peak Form", 74, "Source review requested"],
-        ["Spoiler complaints", "Essay Works", 31, "Low risk"]
-      ];
-      document.getElementById("moderationQueue").innerHTML = flags.map(([title, channel, risk, note]) => `
+      const queue = document.getElementById("moderationQueue");
+      if (!queue) return;
+      queue.innerHTML = moderationFlags.map(flag => `
         <article class="queue-item">
-          <div class="queue-top"><b>${title}</b><span class="badge">${risk}% risk</span></div>
-          <div class="meta">${channel} | ${note}</div>
-          <div class="risk"><span style="width:${risk}%"></span></div>
-          <div class="toolbar"><button class="btn success"><i class="fa-solid fa-check"></i> Approve</button><button class="btn warn"><i class="fa-solid fa-pause"></i> Hold</button><button class="btn primary"><i class="fa-solid fa-ban"></i> Remove</button></div>
-        </article>`).join("");
+          <div class="queue-top"><b>${flag.title}</b><span class="badge">${flag.risk}% risk</span></div>
+          <div class="meta">${flag.source} | ${flag.note}</div>
+          <div class="risk"><span style="width:${flag.risk}%"></span></div>
+          <div class="toolbar"><button class="btn success" onclick="resolveModeration(${flag.id}, 'approve')"><i class="fa-solid fa-check"></i> Approve</button><button class="btn warn" onclick="resolveModeration(${flag.id}, 'hold')"><i class="fa-solid fa-pause"></i> Hold</button><button class="btn primary" onclick="resolveModeration(${flag.id}, 'remove')"><i class="fa-solid fa-ban"></i> Remove</button></div>
+        </article>`).join("") || `<div class="queue-item"><b>Nothing pending</b><span class="meta">The live queue is clear.</span></div>`;
     }
 
     function renderOwnChannel() {
@@ -1566,24 +1896,43 @@
       showView(type === "short" ? "shorts" : "home");
     }
 
-    function openPlayer(item) {
+    function renderPlayerState() {
+      const sourceItem = findItemInLibrary(activePlayerItem) || activePlayerItem;
+      if (!sourceItem) return;
+      activePlayerItem = sourceItem;
       const media = document.getElementById("playerMedia");
-      if (item.source === "youtube") {
-        media.innerHTML = `<iframe src="${item.embedUrl}" title="${item.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
-      } else if (item.source === "file") {
-        media.innerHTML = `<video src="${item.fileUrl}" controls autoplay></video>`;
+      if (sourceItem.source === "youtube") {
+        media.innerHTML = `<iframe src="${sourceItem.embedUrl}" title="${sourceItem.title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+      } else if (sourceItem.source === "file") {
+        media.innerHTML = `<video src="${sourceItem.fileUrl}" controls autoplay></video>`;
       } else {
-        media.innerHTML = `<img id="playerImage" src="${item.thumb}" alt="Selected video">`;
+        media.innerHTML = `<img id="playerImage" src="${sourceItem.thumb}" alt="Selected video">`;
       }
-      document.getElementById("playerTitle").textContent = item.title;
-      document.getElementById("playerMeta").textContent = `${item.channel} | ${item.views || "New"} views | ${item.category}`;
+      document.getElementById("playerTitle").textContent = sourceItem.title;
+      document.getElementById("playerMeta").textContent = `${sourceItem.channel} | ${sourceItem.views || "New"} • ${formatCount(sourceItem.viewsCount || 0)} views | ${sourceItem.category}`;
+      document.getElementById("playerStats").innerHTML = `<span><i class="fa-solid fa-eye"></i> ${formatCount(sourceItem.viewsCount || 0)} views</span><span><i class="fa-solid fa-heart"></i> ${formatCount(sourceItem.likesCount || 0)} likes</span><span><i class="fa-solid fa-comment"></i> ${(sourceItem.comments || []).length} comments</span>`;
+      const actions = document.getElementById("playerActions");
+      if (actions) {
+        actions.innerHTML = `<button class="action-pill ${sourceItem.liked ? "active" : ""}" onclick="toggleLikeItem(${JSON.stringify(sourceItem).replaceAll("'", "&#39;")})"><i class="fa-solid fa-heart"></i> ${sourceItem.liked ? "Liked" : "Like"}</button><button class="action-pill ${sourceItem.subscribed ? "active" : ""}" onclick="toggleSubscribeToChannel('${sourceItem.channel.replace(/'/g, "\\'")}')"><i class="fa-solid fa-bell"></i> ${sourceItem.subscribed ? "Subscribed" : "Follow"}</button>`;
+      }
+      document.getElementById("commentsList").innerHTML = (sourceItem.comments || []).slice(0, 8).map(comment => `
+        <div class="comment-item">
+          <strong>${comment.author}</strong>
+          <div class="meta">${comment.text}</div>
+        </div>`).join("") || `<div class="comment-item"><strong>No comments yet</strong><div class="meta">Be the first to react.</div></div>`;
       document.getElementById("upNext").innerHTML = filteredVideos().slice(0, 4).map(v => `<button class="queue-item" onclick='openPlayer(${JSON.stringify(v).replaceAll("'", "&#39;")})'><b>${v.title}</b><span class="meta">${v.channel}</span></button>`).join("");
+    }
+
+    function openPlayer(item) {
+      activePlayerItem = item;
+      renderPlayerState();
       document.getElementById("player").classList.add("open");
     }
 
     function closePlayer() {
       document.getElementById("player").classList.remove("open");
       document.getElementById("playerMedia").innerHTML = "";
+      activePlayerItem = null;
     }
 
     function handleVideoFiles(fileList) {
@@ -1603,7 +1952,21 @@
       if (runnerItems[0]) runItem(runnerItems[0]);
     }
 
-    function addYoutubeVideo() {
+    async function fetchYouTubeMetadata(videoId) {
+      try {
+        const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return {
+          title: data.title || `YouTube video ${videoId}`,
+          thumb: data.thumbnail_url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+        };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function addYoutubeVideo() {
       const input = document.getElementById("youtubeUrlInput");
       const videoId = getYoutubeId(input.value.trim());
       if (!videoId) {
@@ -1612,7 +1975,8 @@
         return;
       }
       const channelName = currentUser ? currentUser.displayName || currentUser.username : "YouTube import";
-      const item = makeYoutubeItem(videoId, channelName);
+      const metadata = await fetchYouTubeMetadata(videoId);
+      const item = makeYoutubeItem(videoId, channelName, metadata);
       videos.unshift(item);
       runnerItems.unshift(item);
       const shortItem = makeShort(channelName, item.category, `${item.title} clip`, item.thumb);
@@ -1638,8 +2002,10 @@
       return match ? match[1] : "";
     }
 
-    function makeYoutubeItem(videoId, channelName = "YouTube import") {
-      return makeVideo(`YouTube video ${videoId}`, channelName, activeCategory, "From YouTube", "Embed", `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`, { source: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}` });
+    function makeYoutubeItem(videoId, channelName = "YouTube import", metadata = null) {
+      const title = metadata?.title || `YouTube video ${videoId}`;
+      const thumb = metadata?.thumb || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      return makeVideo(title, channelName, activeCategory, "From YouTube", "Embed", thumb, { source: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}`, videoId });
     }
 
     function copyVryseYoutubeLink() {
@@ -1656,12 +2022,13 @@
       input.value = shareUrl;
     }
 
-    function openSharedYoutubeLink() {
+    async function openSharedYoutubeLink() {
       const params = new URLSearchParams(location.search);
       const raw = params.get("yt") || params.get("youtube") || params.get("watch");
       const videoId = getYoutubeId(raw || "");
       if (!videoId) return;
-      const item = makeYoutubeItem(videoId, currentUser ? currentUser.displayName || currentUser.username : "YouTube import");
+      const metadata = await fetchYouTubeMetadata(videoId);
+      const item = makeYoutubeItem(videoId, currentUser ? currentUser.displayName || currentUser.username : "YouTube import", metadata);
       videos.unshift(item);
       runnerItems.unshift(item);
       document.getElementById("youtubeUrlInput").value = `https://www.youtube.com/watch?v=${videoId}`;
@@ -1814,6 +2181,8 @@
     renderAll();
     updateAccountUi();
     revealIntro();
+    startLiveActivity();
+    loadYouTubeContent();
     openSharedYoutubeLink();
   </script>
 </body>
